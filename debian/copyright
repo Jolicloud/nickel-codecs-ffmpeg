@@ -1,0 +1,151 @@
+This package was created by Fabien Tassin <fta@sofaraway.org> on
+Wed, 29 Jul 2009 21:04:32 +0200
+
+The sources were downloaded from the Chromium repositories in 3 parts:
+
+1/ ffmpeg-mt.tar.gz and patches/* from
+   http://src.chromium.org/svn/trunk/deps/third_party/ffmpeg/
+2/ src/{ffmpeg.gyp,README.chromium,source/*} from
+   http://src.chromium.org/svn/trunk/src/third_party/ffmpeg/
+3/ src/build/* from
+   http://src.chromium.org/svn/trunk/src/build/
+
+Copyrights
+
+======
+Files: debian/*
+Copyright: 2009, Fabien Tassin <fta@ubuntu.com>
+License: LGPL v2.1+
+
+Files: src/build/* src/{ffmpeg.gyp,README.chromium,source/*}
+Copyright: 2009 The Chromium Authors
+License: BSD-style license
+
+Files: patches/*
+Copyright: 2009, the patch authors
+License: Same as patched sources (below)
+
+Files: ffmpeg-mt.tar.gz
+
+copy of the unpacked ffmpeg-mt/LICENSE:
+
+ # Most files in FFmpeg are under the GNU Lesser General Public License version 2.1
+ # or later (LGPL v2.1+). Read the file COPYING.LGPL for details. Some other files
+ # have a MIT/X11/BSD-style license. In combination the LGPL v2.1+ applies to
+ # FFmpeg.
+ # 
+ # Some optional parts of FFmpeg are licensed under the GNU General Public License
+ # version 2 or later (GPL v2+). See the file COPYING.GPL for details. None of
+ # these parts are used by default, you have to explicitly pass --enable-gpl to
+ # configure to activate them. In this case, FFmpeg's license changes to GPL v2+.
+ # 
+ # Specifically, the GPL parts of FFmpeg are
+ # 
+ # - libpostproc
+ # - some x86 optimizations in libswscale
+ # - optional x86 optimizations in the files
+ #   libavcodec/x86/h264_deblock_sse2.asm
+ #   libavcodec/x86/h264_idct_sse2.asm
+ #   libavcodec/x86/idct_mmx.c
+ # - the AC-3 decoder in libavcodec/ac3dec.c
+ # - the X11 grabber in libavdevice/x11grab.c
+ # 
+ # Some external libraries, e.g. libx264, are under GPL and can be used in
+ # conjunction with FFmpeg. They require --enable-gpl to be passed to configure
+ # as well.
+ # 
+ # The nonfree external libraries libamrnb, libamrwb and libfaac can be hooked up
+ # in FFmpeg. You need to pass --enable-nonfree to configure to enable them. Employ
+ # this option with care as FFmpeg then becomes nonfree and unredistributable.
+ # Note that libfaac claims to be LGPL, but is not.
+ # 
+ # There are a handful of files under other licensing terms, namely:
+ # 
+ # * The files libavcodec/jfdctfst.c, libavcodec/jfdctint.c, libavcodec/jrevdct.c
+ #   are taken from libjpeg, see the top of the files for licensing details.
+
+The code actually built (see src/ffmpeg.gyp) is LGPL v2.1+ with the following
+exceptions:
+
+Files: source/patched-ffmpeg-mt/libavcodec/arm/jrevdct_arm.S
+Copyright: 2001 Lionel Ulmer (lionel.ulmer@free.fr / bbrox@bbrox.org)
+License: MIT
+
+Files: source/patched-ffmpeg-mt/libavcodec/jrevdct.c
+Copyright: 1991, 1992, Thomas G. Lane
+License: jpeg license, GPL (v2 or later) compatible
+
+Files: source/patched-ffmpeg-mt/libavcodec/x86/vc1dsp_mmx.c
+Copyright: 2007 Christophe GISQUET <christophe.gisquet@free.fr>
+License: MIT
+
+source/patched-ffmpeg-mt/libavformat/{oggdec.c,oggparseogm.c,oggparsetheora.c,oggparsevorbis.c}
+Copyright: 2005  Michael Ahlberg, Måns Rullgård
+License: MIT
+
+Here is the text of the MIT license:
+
+ | Permission is hereby granted, free of charge, to any person obtaining a copy
+ | of this software and associated documentation files (the "Software"), to deal
+ | in the Software without restriction, including without limitation the rights
+ | to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ | copies of the Software, and to permit persons to whom the Software is
+ | furnished to do so, subject to the following conditions:
+
+ | The above copyright notice and this permission notice shall be included in
+ | all copies or substantial portions of the Software.
+
+ | THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ | IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ | FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+ | COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ | IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ | CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+Here is the text of the Chromium BSD-style license:
+
+ |  Redistribution and use in source and binary forms, with or without
+ |  modification, are permitted provided that the following conditions are
+ |  met:
+ |  .
+ |     * Redistributions of source code must retain the above copyright
+ |  notice, this list of conditions and the following disclaimer.
+ |     * Redistributions in binary form must reproduce the above
+ |  copyright notice, this list of conditions and the following disclaimer
+ |  in the documentation and/or other materials provided with the
+ |  distribution.
+ |     * Neither the name of Google Inc. nor the names of its
+ |  contributors may be used to endorse or promote products derived from
+ |  this software without specific prior written permission.
+ |  .
+ |  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ |  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ |  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ |  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ |  OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ |  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ |  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ |  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ |  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ |  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ |  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+The rest of the code is licensed under the GNU LGPL:
+
+ | This library is free software; you can redistribute it and/or
+ | modify it under the terms of the GNU Lesser General Public License as
+ | published by the Free Software Foundation; either version 2.1 of
+ | the License, or (at your option) any later version.
+ |
+ | This library is distributed in the hope that it will be useful,
+ | but WITHOUT ANY WARRANTY; without even the implied warranty of
+ | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ | Lesser General Public License for more details.
+ |
+ | You should have received a copy of the GNU General Public License
+ | along with this program; if not, write to the Free Software
+ | Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
+
+On Debian GNU/Linux systems, the complete text of the GNU General Public
+License can be found in `/usr/share/common-licenses/GPL' and the text of the
+GNU Lesser General Public License is in `/usr/share/common-licenses/LGPL'.

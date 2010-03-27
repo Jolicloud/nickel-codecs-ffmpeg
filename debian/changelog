@@ -1,0 +1,5 @@
+chromium-codecs-ffmpeg (0.5+svn20100326r42726+42573+42890-0ubuntu1~ucd2~jaunty) jaunty; urgency=low
+
+  * Initial release. (Closes: #XXXXXX)
+
+ -- Fabien Tassin <fta@ubuntu.com>  Sat, 27 Mar 2010 13:03:29 +0100
