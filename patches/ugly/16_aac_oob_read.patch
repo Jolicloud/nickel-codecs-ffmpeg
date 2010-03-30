@@ -1,0 +1,33 @@
+diff -rpu unpatched_ffmpeg-mt/libavcodec/aac.c ffmpeg-mt/libavcodec/aac.c
+--- unpatched_ffmpeg-mt/libavcodec/aac.c	2010-03-11 17:46:29 -0800
++++ ffmpeg-mt/libavcodec/aac.c	2010-03-11 19:13:44 -0800
+@@ -449,6 +449,7 @@ static int decode_audio_specific_config(
+     int i;
+
+     init_get_bits(&gb, data, data_size * 8);
++    gb.buffer_enforcing = 1;
+
+     if ((i = ff_mpeg4audio_get_config(&ac->m4ac, data, data_size)) < 0)
+         return -1;
+@@ -1965,6 +1966,7 @@ static int aac_decode_frame(AVCodecConte
+     int samples = 1024, multiplier;
+
+     init_get_bits(&gb, buf, buf_size * 8);
++    gb.buffer_enforcing = 1;
+
+     if (show_bits(&gb, 12) == 0xfff) {
+         if (parse_adts_frame_header(ac, &gb) < 0) {
+@@ -1979,6 +1981,12 @@ static int aac_decode_frame(AVCodecConte
+
+     // parse
+     while ((elem_type = get_bits(&gb, 3)) != TYPE_END) {
++#ifdef ALT_BITSTREAM_READER
++        if (gb.buffer_exhausted) {
++            av_log(ac->avccontext, AV_LOG_ERROR, "out of bounds read: index, size: %d, %d\n", gb.index, gb.size_in_bits);
++            return -1;
++        }
++#endif
+         elem_id = get_bits(&gb, 4);
+
+         if (elem_type < TYPE_DSE && !(che=get_che(ac, elem_type, elem_id))) {
+
