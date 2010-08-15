@@ -5,9 +5,11 @@ Maintainer: Fabien Tassin <fta@ubuntu.com>
 Vcs-Bzr: https://code.launchpad.net/~chromium-team/chromium-browser/chromium-codecs-ffmpeg.head
 Build-Depends: cdbs,
 	debhelper (>= 5),
+	quilt,
 	patchutils (>= 0.2.25),
 	lsb-release,
 	zlib1g-dev,
+	libvpx-dev,
 	gyp,
 	yasm (>= 0.7)
 Standards-Version: 3.8.3

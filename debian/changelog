@@ -1,9 +1,38 @@
-chromium-codecs-ffmpeg (0.5+svn20100406r43776+43794+43724-0ubuntu1~ucd1~jaunty) jaunty; urgency=low
+chromium-codecs-ffmpeg (0.6+svn20100811r55740+56137-0ubuntu1~ucd1~jaunty) jaunty; urgency=low
 
-  * Fix broken "Depends" for chromium-codecs-ffmpeg-extra-dbg
+  * Drop the sse2 patch, it has been applied upstream, and set disable_sse2
+    - drop debian/patches/*
+    - update debian/rules
+  * Unpack the sources during pre-build so quilt has access to all source files
+    and set QUILT_PATCHES (for hardy)
+    - update debian/rules
+  * Add libvpx-dev to Build-Depends and set the use_system_vpx gyp knob
     - update debian/control
+    - update debian/rules
+  * Re-do the get-orig-source rule with 2 repos instead of 3 following
+    the upstream reorganization and follow the revision requested by
+    Chromium for now on
+    - update debian/rules
+  * FTBFS when an upstream patch fails to apply, as it could lead to weird
+    situations
+    - update debian/rules
 
- -- Fabien Tassin <fta@ubuntu.com>  Wed, 07 Apr 2010 04:00:01 +0200
+ -- Fabien Tassin <fta@ubuntu.com>  Sun, 15 Aug 2010 04:00:02 +0200
+
+chromium-codecs-ffmpeg (0.5+svn20100406r43776+43984+43918-0ubuntu1) lucid; urgency=low
+
+  * Fix broken "Depends" for chromium-codecs-ffmpeg-extra-dbg (LP: 558986)
+    - update debian/control
+  * Add quilt to Build-Depends
+    - update debian/control
+    - update debian/rules
+  * Disable SSE2 like in Chromium itself, it's causing crashes on Celeron &
+    Athlon CPUs (see http://crbug.com/39969) (LP: 558839)
+    - update debian/rules
+    - add debian/patches/disable_sse2.patch
+    - add debian/patches/series
+
+ -- Fabien Tassin <fta@ubuntu.com>  Fri, 09 Apr 2010 12:53:08 +0200
 
 chromium-codecs-ffmpeg (0.5+svn20100326r42726+42573+42890-0ubuntu1) lucid; urgency=low
 
