@@ -1,6 +1,6 @@
-diff -rpu unpatched_ffmpeg-mt/libavcodec/get_bits.h ffmpeg-mt/libavcodec/get_bits.h
---- unpatched_ffmpeg-mt/libavcodec/get_bits.h	2010-03-11 17:46:30 -0800
-+++ ffmpeg-mt/libavcodec/get_bits.h	2010-03-11 19:13:14 -0800
+diff -rpu -N orig/libavcodec/get_bits.h ffmpeg-mt/libavcodec/get_bits.h
+--- orig/libavcodec/get_bits.h	2010-07-27 13:08:01.660940600 -0700
++++ ffmpeg-mt/libavcodec/get_bits.h	2010-07-27 13:08:04.018176300 -0700
 @@ -53,13 +53,21 @@
  /* buffer, buffer_end and size_in_bits must be present and used by every reader */
  typedef struct GetBitContext {
@@ -24,14 +24,14 @@ diff -rpu unpatched_ffmpeg-mt/libavcodec/get_bits.h ffmpeg-mt/libavcodec/get_bit
      uint32_t cache0;
      uint32_t cache1;
 @@ -139,13 +147,19 @@ for examples see get_bits, show_bits, sk
-
+ 
  # ifdef ALT_BITSTREAM_READER_LE
  #   define UPDATE_CACHE(name, gb)\
 +      if (!(gb)->buffer_exhausted)\
          name##_cache= AV_RL32( ((const uint8_t *)(gb)->buffer)+(name##_index>>3) ) >> (name##_index&0x07);\
 +      else\
 +        name##_cache = 0;\
-
+ 
  #   define SKIP_CACHE(name, gb, num)\
          name##_cache >>= (num);
  # else
@@ -40,7 +40,7 @@ diff -rpu unpatched_ffmpeg-mt/libavcodec/get_bits.h ffmpeg-mt/libavcodec/get_bit
          name##_cache= AV_RB32( ((const uint8_t *)(gb)->buffer)+(name##_index>>3) ) << (name##_index&0x07);\
 +      else\
 +        name##_cache = 0;\
-
+ 
  #   define SKIP_CACHE(name, gb, num)\
          name##_cache <<= (num);
 @@ -154,6 +168,8 @@ for examples see get_bits, show_bits, sk
@@ -49,11 +49,11 @@ diff -rpu unpatched_ffmpeg-mt/libavcodec/get_bits.h ffmpeg-mt/libavcodec/get_bit
          name##_index += (num);\
 +        if ((gb)->buffer_enforcing && name##_index >= (gb)->size_in_bits)\
 +          (gb)->buffer_exhausted = 1;\
-
+ 
  #   define SKIP_BITS(name, gb, num)\
          {\
 @@ -187,6 +203,12 @@ static inline int get_bits_count(const G
-
+ 
  static inline void skip_bits_long(GetBitContext *s, int n){
      s->index += n;
 +    if (s->buffer_enforcing) {
@@ -63,11 +63,11 @@ diff -rpu unpatched_ffmpeg-mt/libavcodec/get_bits.h ffmpeg-mt/libavcodec/get_bit
 +            s->buffer_exhausted = 1;
 +    }
  }
-
+ 
  #elif defined LIBMPEG2_BITSTREAM_READER
 @@ -391,7 +413,10 @@ static inline void skip_bits(GetBitConte
  }
-
+ 
  static inline unsigned int get_bits1(GetBitContext *s){
 +    if (s->buffer_exhausted)
 +        return 0;
@@ -83,7 +83,7 @@ diff -rpu unpatched_ffmpeg-mt/libavcodec/get_bits.h ffmpeg-mt/libavcodec/get_bit
 +    if (s->buffer_enforcing && index >= s->size_in_bits)
 +        s->buffer_exhausted = 1;
      s->index= index;
-
+ 
      return result;
 +  }
  #else
@@ -98,4 +98,3 @@ diff -rpu unpatched_ffmpeg-mt/libavcodec/get_bits.h ffmpeg-mt/libavcodec/get_bit
  #ifdef ALT_BITSTREAM_READER
      s->index=0;
  #elif defined LIBMPEG2_BITSTREAM_READER
-

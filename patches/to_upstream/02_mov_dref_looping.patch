@@ -1,8 +1,7 @@
-Only in unpatched_ffmpeg-mt: ffmpeg-mt
-diff -rpu unpatched_ffmpeg-mt/libavformat/mov.c ffmpeg-mt/libavformat/mov.c
---- unpatched_ffmpeg-mt/libavformat/mov.c	2010-03-11 17:46:31 -0800
-+++ ffmpeg-mt/libavformat/mov.c	2010-03-11 19:08:40 -0800
-@@ -312,6 +312,8 @@ static int mov_read_dref(MOVContext *c, 
+diff -rpu -N orig/libavformat/mov.c ffmpeg-mt/libavformat/mov.c
+--- orig/libavformat/mov.c	2010-07-27 13:06:22.069982500 -0700
++++ ffmpeg-mt/libavformat/mov.c	2010-07-27 13:06:23.245100000 -0700
+@@ -344,6 +344,8 @@ static int mov_read_dref(MOVContext *c,
          MOVDref *dref = &sc->drefs[i];
          uint32_t size = get_be32(pb);
          int64_t next = url_ftell(pb) + size - 4;
@@ -11,4 +10,3 @@ diff -rpu unpatched_ffmpeg-mt/libavformat/mov.c ffmpeg-mt/libavformat/mov.c
  
          dref->type = get_le32(pb);
          get_be32(pb); // version + flags
-Only in ffmpeg-mt/libavformat: mov.c~

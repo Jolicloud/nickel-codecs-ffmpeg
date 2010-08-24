@@ -1,0 +1,134 @@
+diff -rpu -N orig/libavformat/matroskadec.c ffmpeg-mt/libavformat/matroskadec.c
+--- orig/libavformat/matroskadec.c	2010-07-27 13:08:26.240398300 -0700
++++ ffmpeg-mt/libavformat/matroskadec.c	2010-07-27 13:08:27.346508900 -0700
+@@ -34,13 +34,17 @@
+ /* For ff_codec_get_id(). */
+ #include "riff.h"
+ #include "isom.h"
++#if CONFIG_SIPR_DECODER
+ #include "rm.h"
++#endif
+ #include "matroska.h"
+ #include "libavcodec/mpeg4audio.h"
+ #include "libavutil/intfloat_readwrite.h"
+ #include "libavutil/intreadwrite.h"
+ #include "libavutil/avstring.h"
++#if HAVE_LZO1X_999_COMPRESS
+ #include "libavutil/lzo.h"
++#endif
+ #if CONFIG_ZLIB
+ #include <zlib.h>
+ #endif
+@@ -620,12 +624,14 @@ static int ebml_read_float(ByteIOContext
+ static int ebml_read_ascii(ByteIOContext *pb, int size, char **str)
+ {
+     av_free(*str);
++    *str = NULL;
+     /* EBML strings are usually not 0-terminated, so we allocate one
+      * byte more, read the string and NULL-terminate it ourselves. */
+-    if (!(*str = av_malloc(size + 1)))
++    if (size < 0 || !(*str = av_malloc(size + 1)))
+         return AVERROR(ENOMEM);
+     if (get_buffer(pb, (uint8_t *) *str, size) != size) {
+         av_freep(str);
++        *str = NULL;
+         return AVERROR(EIO);
+     }
+     (*str)[size] = '\0';
+@@ -647,6 +653,7 @@ static int ebml_read_binary(ByteIOContex
+     bin->pos  = url_ftell(pb);
+     if (get_buffer(pb, bin->data, length) != length) {
+         av_freep(&bin->data);
++        bin->data = NULL;
+         return AVERROR(EIO);
+     }
+ 
+@@ -867,6 +874,8 @@ static int matroska_probe(AVProbeData *p
+      * Not fully fool-proof, but good enough. */
+     for (i = 0; i < FF_ARRAY_ELEMS(matroska_doctypes); i++) {
+         int probelen = strlen(matroska_doctypes[i]);
++        if (total < sizeof(probelen))
++            return 0;
+         for (n = 4+size; n <= 4+size+total-probelen; n++)
+             if (!memcmp(p->buf+n, matroska_doctypes[i], probelen))
+                 return AVPROBE_SCORE_MAX;
+@@ -904,6 +913,7 @@ static int matroska_decode_buffer(uint8_
+     switch (encodings[0].compression.algo) {
+     case MATROSKA_TRACK_ENCODING_COMP_HEADERSTRIP:
+         return encodings[0].compression.settings.size;
++#if HAVE_LZO1X_999_COMPRESS
+     case MATROSKA_TRACK_ENCODING_COMP_LZO:
+         do {
+             olen = pkt_size *= 3;
+@@ -914,6 +924,7 @@ static int matroska_decode_buffer(uint8_
+             goto failed;
+         pkt_size -= olen;
+         break;
++#endif
+ #if CONFIG_ZLIB
+     case MATROSKA_TRACK_ENCODING_COMP_ZLIB: {
+         z_stream zstream = {0};
+@@ -1174,6 +1185,7 @@ static int matroska_read_header(AVFormat
+         ebml_free(ebml_syntax, &ebml);
+         return AVERROR_PATCHWELCOME;
+     }
++    av_metadata_set2(&s->metadata, "doctype", ebml.doctype, 0);
+     for (i = 0; i < FF_ARRAY_ELEMS(matroska_doctypes); i++)
+         if (!strcmp(ebml.doctype, matroska_doctypes[i]))
+             break;
+@@ -1233,14 +1245,17 @@ static int matroska_read_header(AVFormat
+                    "Multiple combined encodings no supported");
+         } else if (encodings_list->nb_elem == 1) {
+             if (encodings[0].type ||
+-                (encodings[0].compression.algo != MATROSKA_TRACK_ENCODING_COMP_HEADERSTRIP &&
++                (encodings[0].compression.algo != MATROSKA_TRACK_ENCODING_COMP_HEADERSTRIP
+ #if CONFIG_ZLIB
+-                 encodings[0].compression.algo != MATROSKA_TRACK_ENCODING_COMP_ZLIB &&
++                 && encodings[0].compression.algo != MATROSKA_TRACK_ENCODING_COMP_ZLIB
+ #endif
+ #if CONFIG_BZLIB
+-                 encodings[0].compression.algo != MATROSKA_TRACK_ENCODING_COMP_BZLIB &&
++                 && encodings[0].compression.algo != MATROSKA_TRACK_ENCODING_COMP_BZLIB
+ #endif
+-                 encodings[0].compression.algo != MATROSKA_TRACK_ENCODING_COMP_LZO)) {
++#if HAVE_LZO1X_999_COMPRESS
++                 && encodings[0].compression.algo != MATROSKA_TRACK_ENCODING_COMP_LZO
++#endif
++               )) {
+                 encodings[0].scope = 0;
+                 av_log(matroska->ctx, AV_LOG_ERROR,
+                        "Unsupported encoding type");
+@@ -1365,11 +1380,13 @@ static int matroska_read_header(AVFormat
+                 st->codec->block_align = track->audio.coded_framesize;
+                 track->codec_priv.size = 0;
+             } else {
++#if CONFIG_SIPR_DECODER
+                 if (codec_id == CODEC_ID_SIPR && flavor < 4) {
+                     const int sipr_bit_rate[4] = { 6504, 8496, 5000, 16000 };
+                     track->audio.sub_packet_size = ff_sipr_subpk_size[flavor];
+                     st->codec->bit_rate = sipr_bit_rate[flavor];
+                 }
++#endif
+                 st->codec->block_align = track->audio.sub_packet_size;
+                 extradata_offset = 78;
+             }
+@@ -1432,6 +1449,8 @@ static int matroska_read_header(AVFormat
+         } else if (track->type == MATROSKA_TRACK_TYPE_AUDIO) {
+             st->codec->codec_type = AVMEDIA_TYPE_AUDIO;
+             st->codec->sample_rate = track->audio.out_samplerate;
++            if (st->codec->sample_rate <= 0)
++                st->codec->sample_rate = 1;
+             st->codec->channels = track->audio.channels;
+             if (st->codec->codec_id != CODEC_ID_AAC)
+             st->need_parsing = AVSTREAM_PARSE_HEADERS;
+@@ -1711,8 +1730,10 @@ static int matroska_parse_block(Matroska
+                             memcpy(track->audio.buf+sps*(h*x+((h+1)/2)*(y&1)+(y>>1)), data+x*sps, sps);
+ 
+                     if (++track->audio.sub_packet_cnt >= h) {
++#if CONFIG_SIPR_DECODER
+                         if (st->codec->codec_id == CODEC_ID_SIPR)
+                             ff_rm_reorder_sipr_data(track->audio.buf, h, w);
++#endif
+                         track->audio.sub_packet_cnt = 0;
+                         track->audio.pkt_cnt = h*w / a;
+                     }

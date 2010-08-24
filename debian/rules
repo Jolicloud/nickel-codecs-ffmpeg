@@ -6,14 +6,26 @@ DEBIAN_UPSTREAM_VERSION	:= $(shell echo $(DEBIAN_VERSION) | sed 's/^\(.*\)-[^-]*
 DEBIAN_REVISION		:= $(shell echo $(DEBIAN_VERSION) | sed 's/^.*r\([^-]*\)-.*/\1/')
 DEBIAN_DIST             := $(shell lsb_release -ds | tr -d '()')
 
+# We can follow either trunk or the revision required by Chromium
+FOLLOW_CHROMIUM ?= 1
+
 SRC_DIR        := $(CURDIR)
 SOURCES_DIR    := src/source/patched-ffmpeg-mt
 LIB_DIR        := usr/lib/nickel-browser
 
+pre-build:: debian/stamp-unpack
+include /usr/share/cdbs/1/rules/patchsys-quilt.mk
 include /usr/share/cdbs/1/rules/debhelper.mk
+
+# for hardy
+DEB_QUILT_PATCHDIR_LINK = $(NULL)
+export QUILT_PATCHES=$(SRC_DIR)/debian/patches
 
 MAKE_ARGS := BUILDTYPE=Release
 # MAKE_ARGS += CFLAGS="$(CFLAGS)" CXXFLAGS="$(CXXFLAGS)" CPPFLAGS="$(CPPFLAGS)" LDFLAGS="$(LDFLAGS)"
+
+# Disable SSE2
+GYP_DEFINES = disable_sse2=1
 
 ifeq (armel,$(DEB_BUILD_ARCH))
 GYP_DEFINES += \
@@ -37,6 +49,7 @@ endif
 GYP_DEFINES += \
 	release_extra_cflags=-g \
 	use_system_yasm=1 \
+	use_system_vpx=1 \
 	$(NULL)
 
 # the ffmpeg_branding variable controls which codecs are built inside the sumo lib.
@@ -55,7 +68,7 @@ common-build-arch:: debian/stamp-build-ffmpeg-std debian/stamp-build-ffmpeg-extr
 debian/stamp-unpack:
 	rm -rf $(SRC_DIR)/ffmpeg-mt $(SRC_DIR)/$(SOURCES_DIR)
 	cd $(SRC_DIR) && tar zxf ffmpeg-mt.tar.gz
-	@$(foreach patch,$(sort $(notdir $(wildcard $(SRC_DIR)/patches/*.patch $(SRC_DIR)/patches/*/*.patch))),echo "# Apply $(patch) ..." ; \
+	@set -e; $(foreach patch,$(sort $(notdir $(wildcard $(SRC_DIR)/patches/*.patch $(SRC_DIR)/patches/*/*.patch))),echo "# Apply $(patch) ..." ; \
 	  cd $(SRC_DIR)/ffmpeg-mt && patch -p1 < $(wildcard $(SRC_DIR)/patches/$(patch) $(SRC_DIR)/patches/*/$(patch));)
 	mkdir -p $(SRC_DIR)/$(dir $(SOURCES_DIR))
 	mv $(SRC_DIR)/ffmpeg-mt $(SRC_DIR)/$(SOURCES_DIR)
@@ -64,7 +77,7 @@ debian/stamp-unpack:
 debian/stamp-configure-ffmpeg-%: GYP_DEFINES += $(FFMPEG_MT_$(subst std,STD,$(subst extra,EXTRA,$*))_FLAGS)
 debian/stamp-configure-ffmpeg-%: debian/stamp-unpack
 	rm -rf $(SRC_DIR)/*.mk $(SRC_DIR)/src/out
-	cd $(SRC_DIR)/src && GYP_DEFINES="$(GYP_DEFINES)" GYP_GENERATORS=make build/gyp_chromium --depth=../src ffmpeg.gyp
+	cd $(SRC_DIR)/src && GYP_DEFINES="$(GYP_DEFINES)" GYP_GENERATORS=make build/gyp_chromium --depth=../src source/ffmpeg.gyp
 	touch $@
 
 debian/stamp-build-ffmpeg-%: debian/stamp-configure-ffmpeg-%
@@ -81,7 +94,6 @@ clean::
 
 # Tarball (get-orig-source & get-current-source)
 FFMPEG_URL   := http://src.chromium.org/svn/trunk/deps/third_party/ffmpeg/
-RULES_URL    := http://src.chromium.org/svn/trunk/src/third_party/ffmpeg/
 BUILD_URL    := http://src.chromium.org/svn/trunk/src/build/
 
 SRC_FILES    := \
@@ -97,8 +109,7 @@ SRC_FILES    := \
 	ffmpeg/ffmpeg-mt.tar.gz \
 	ffmpeg/patches \
 	ffmpeg/README.chromium \
-	gyp/ffmpeg.gyp \
-	gyp/source \
+	ffmpeg/source \
 	$(NULL)
 
 TMP_DDIR     := $(DEBIAN_NAME)-$(shell echo $$$$)
@@ -115,17 +126,18 @@ CO = ( if [ ! -d "$(3)" ] ; then $(call DO,mkdir -p "$(3)") ; $(call DO,svn co $
 ifneq (,$(DEBIAN_TAG))
 get-orig-source: TAG1  = $(NULL)
 get-orig-source: TAG2  = $(NULL)
-get-orig-source: TAG3  = $(NULL)
+else
+ifeq (1,$(FOLLOW_CHROMIUM))
+get-orig-source: TAG1  = -r $(shell wget -qO- http://src.chromium.org/svn/trunk/src/DEPS | grep '"ffmpeg_revision":' | cut -d'"' -f4)
 else
 get-orig-source: TAG1  = -r $(shell svn log --limit 1 $(FFMPEG_URL) | grep ^r | head -1 | sed -e 's/^r\([^ ]*\).*/\1/')
-get-orig-source: TAG2  = -r $(shell svn log --limit 1 $(RULES_URL)  | grep ^r | head -1 | sed -e 's/^r\([^ ]*\).*/\1/')
-get-orig-source: TAG3  = -r $(shell svn log --limit 1 $(BUILD_URL)  | grep ^r | head -1 | sed -e 's/^r\([^ ]*\).*/\1/')
+endif
+get-orig-source: TAG2  = -r $(shell svn log --limit 1 $(BUILD_URL)  | grep ^r | head -1 | sed -e 's/^r\([^ ]*\).*/\1/')
 endif
 get-orig-source: gos-all
 
 get-current-source: TAG1 = -r $(shell echo $(DEBIAN_REVISION) | cut -d+ -f1)
 get-current-source: TAG2 = -r $(shell echo $(DEBIAN_REVISION) | cut -d+ -f2)
-get-current-source: TAG3 = -r $(shell echo $(DEBIAN_REVISION) | cut -d+ -f3)
 get-current-source: gos-all
 
 gos-all: gos-co gos-pack
@@ -138,13 +150,12 @@ ifeq (,$(LOCAL_BRANCH))
 endif
 	@$(call CO,$(TAG1) -N,$(FFMPEG_URL),$(TMP_DIR)/ffmpeg)
 	@$(call CO,$(TAG1),$(FFMPEG_URL)/patches,$(TMP_DIR)/ffmpeg/patches)
+	@$(call CO,$(TAG1) -N,$(FFMPEG_URL)/source,$(TMP_DIR)/ffmpeg/source)
+	@$(call CO,$(TAG1),$(FFMPEG_URL)/source/config/Chromium/linux,$(TMP_DIR)/ffmpeg/source/config/Chromium/linux)
+	@$(call CO,$(TAG1),$(FFMPEG_URL)/source/config/Chrome/linux,$(TMP_DIR)/ffmpeg/source/config/Chrome/linux)
+	@$(call CO,$(TAG1),$(FFMPEG_URL)/source/config/libavutil,$(TMP_DIR)/ffmpeg/source/config/libavutil)
 
-	@$(call CO,$(TAG2) -N,$(RULES_URL),$(TMP_DIR)/gyp)
-	@$(call CO,$(TAG2),$(RULES_URL)/source/config/Chromium/linux,$(TMP_DIR)/gyp/source/config/Chromium/linux)
-	@$(call CO,$(TAG2),$(RULES_URL)/source/config/Chrome/linux,$(TMP_DIR)/gyp/source/config/Chrome/linux)
-	@$(call CO,$(TAG2),$(RULES_URL)/source/config/libavutil,$(TMP_DIR)/gyp/source/config/libavutil)
-
-	@$(call CO,$(TAG3),$(BUILD_URL),$(TMP_DIR)/src/build)
+	@$(call CO,$(TAG2),$(BUILD_URL),$(TMP_DIR)/src/build)
 ifneq (,$(LOCAL_BRANCH))
 	rm -rf $(TMP_DDIR)
 	cp -la $(TMP_DIR) $(TMP_DDIR)
@@ -156,8 +167,7 @@ ifneq (,$(DEBIAN_TAG))
 gos-pack: VERSION  = $(shell echo $(DEBIAN_TAG) | cut -d= -f2)
 else
 gos-pack: REVISION = $(shell cd $(TMP_DIR)/ffmpeg && svn log --xml --limit 1 | grep -E '^( *revision=|<date>)' | tr -d '\n' | \
-	             sed -e 's/.*"\([0-9]*\)".*>\(....\)-\(..\)-\(..\)T.*/\2\3\4r\1/')+$(shell cd $(TMP_DIR)/gyp && \
-	             svn log --limit 1 | grep ^r | head -1 | sed -e 's/^r\([^ ]*\).*/\1/')+$(shell cd $(TMP_DIR)/src/build && \
+	             sed -e 's/.*"\([0-9]*\)".*>\(....\)-\(..\)-\(..\)T.*/\2\3\4r\1/')+$(shell cd $(TMP_DIR)/src/build && \
 	             svn log --limit 1 | grep ^r | head -1 | sed -e 's/^r\([^ ]*\).*/\1/')
 gos-pack: VERSION  = $(shell grep -E '^version [0-9][^:]*:.*' $(TMP_DIR)/ffmpeg/ffmpeg-mt/Changelog | head -1 | sed -e 's/.* \(.*\):/\1/')+svn$(REVISION)
 endif
@@ -166,7 +176,7 @@ gos-pack:
 	rm -rf  $(TMP_DIR)/ffmpeg-mt
 	mkdir $(TMP_DIR)/$(DEBIAN_NAME)-$(VERSION)
 	tar -cf - -C $(TMP_DIR) $(SRC_FILES) --exclude .svn | tar -xf - -C $(TMP_DIR)/$(DEBIAN_NAME)-$(VERSION)
-	@$(foreach dir,ffmpeg gyp,$(call DO,mv $(TMP_DIR)/$(DEBIAN_NAME)-$(VERSION)/$(dir)/* $(TMP_DIR)/$(DEBIAN_NAME)-$(VERSION)/src); rmdir $(TMP_DIR)/$(DEBIAN_NAME)-$(VERSION)/$(dir);)
+	@$(call DO,mv $(TMP_DIR)/$(DEBIAN_NAME)-$(VERSION)/ffmpeg/* $(TMP_DIR)/$(DEBIAN_NAME)-$(VERSION)/src); rmdir $(TMP_DIR)/$(DEBIAN_NAME)-$(VERSION)/ffmpeg
 	@$(foreach ent,*.tar.gz patches,$(call DO,mv $(TMP_DIR)/$(DEBIAN_NAME)-$(VERSION)/src/$(ent) $(TMP_DIR)/$(DEBIAN_NAME)-$(VERSION));)
 	cd $(TMP_DIR) && tar zcf ../$(DEBIAN_NAME)_$(VERSION).orig.tar.gz --exclude=.svn $(DEBIAN_NAME)-$(VERSION)
 	rm -rf $(TMP_DIR)
