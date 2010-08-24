@@ -1,13 +1,13 @@
-diff -rpu unpatched_ffmpeg-mt/libavcodec/h264.h ffmpeg-mt/libavcodec/h264.h
---- unpatched_ffmpeg-mt/libavcodec/h264.h	2010-03-11 17:46:30 -0800
-+++ ffmpeg-mt/libavcodec/h264.h	2010-03-11 19:12:59 -0800
-@@ -599,9 +599,20 @@ typedef struct H264Context{
-
+diff -rpu -N orig/libavcodec/h264.h ffmpeg-mt/libavcodec/h264.h
+--- orig/libavcodec/h264.h	2010-07-27 13:07:56.248399400 -0700
++++ ffmpeg-mt/libavcodec/h264.h	2010-07-27 13:07:58.254600000 -0700
+@@ -602,9 +602,20 @@ typedef struct H264Context{
+ 
  extern const uint8_t ff_h264_chroma_qp[52];
-
+ 
 +#if CONFIG_SVQ3_DECODER
  void ff_svq3_luma_dc_dequant_idct_c(DCTELEM *block, int qp);
-
+ 
  void ff_svq3_add_idct_c(uint8_t *dst, DCTELEM *block, int stride, int qp, int dc);
 +#else
 +
@@ -19,7 +19,6 @@ diff -rpu unpatched_ffmpeg-mt/libavcodec/h264.h ffmpeg-mt/libavcodec/h264.h
 +
 +#endif
 +
-
+ 
  /**
   * Decode SEI
-

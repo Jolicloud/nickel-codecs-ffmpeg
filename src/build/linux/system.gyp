@@ -13,7 +13,7 @@
         'pkg-config': 'pkg-config'
       },
     }],
-    [ 'OS=="linux"', {
+    [ 'OS=="linux" or OS=="freebsd" or OS=="openbsd"', {
       'variables': {
         # We use our own copy of libssl, although we still need to link against
         # the rest of NSS.
@@ -76,7 +76,7 @@
           'conditions': [
             ['use_system_ssl==0', {
               'dependencies': [
-                '../../net/third_party/nss/nss.gyp:ssl',
+                '../../net/third_party/nss/ssl.gyp:ssl',
                 '../../third_party/zlib/zlib.gyp:zlib',
               ],
               'direct_dependent_settings': {
@@ -88,8 +88,9 @@
                   # out of $(pkg-config --cflags nss) and GYP include paths
                   # come after cflags on the command line. So we have these
                   # bodges:
-                  '-I../net/third_party/nss/ssl',  # for scons
-                  '-Inet/third_party/nss/ssl',     # for make
+                  '-I../net/third_party/nss/ssl',               # for scons
+                  '-Inet/third_party/nss/ssl',                  # for make
+                  '-IWebKit/chromium/net/third_party/nss/ssl',  # for make in webkit
                   '<!@(<(pkg-config) --cflags nss)',
                 ],
               },
@@ -254,43 +255,68 @@
           },
       }]]
     },
-# TODO(evanm): temporarily disabled while we figure out whether to depend
-# on gnome-keyring etc.
-# http://code.google.com/p/chromium/issues/detail?id=12351
-#     {
-#       'target_name': 'gnome-keyring',
-#       'type': 'settings',
-#       'direct_dependent_settings': {
-#         'cflags': [
-#           '<!@(<(pkg-config) --cflags gnome-keyring-1)',
-#         ],
-#       },
-#       'link_settings': {
-#         'ldflags': [
-#           '<!@(<(pkg-config) --libs-only-L --libs-only-other gnome-keyring-1)',
-#         ],
-#         'libraries': [
-#           '<!@(<(pkg-config) --libs-only-l gnome-keyring-1)',
-#         ],
-#       },
-#     },
-     {
-       'target_name': 'dbus-glib',
-       'type': 'settings',
-       'direct_dependent_settings': {
-         'cflags': [
-           '<!@(<(pkg-config) --cflags dbus-glib-1)',
-         ],
-       },
-       'link_settings': {
-         'ldflags': [
-           '<!@(<(pkg-config) --libs-only-L --libs-only-other dbus-glib-1)',
-         ],
-         'libraries': [
-           '<!@(<(pkg-config) --libs-only-l dbus-glib-1)',
-         ],
-       },
-     },
+    {
+      'target_name': 'gnome-keyring',
+      'type': 'settings',
+      'conditions': [
+        ['chromeos==0', {
+          'direct_dependent_settings': {
+            'cflags': [
+              '<!@(<(pkg-config) --cflags gnome-keyring-1)',
+            ],
+            'conditions': [
+              ['linux_link_gnome_keyring==0', {
+                'defines': ['DLOPEN_GNOME_KEYRING'],
+              }],
+            ],
+          },
+          'conditions': [
+            ['linux_link_gnome_keyring!=0', {
+              'link_settings': {
+                'ldflags': [
+                  '<!@(<(pkg-config) --libs-only-L --libs-only-other gnome-keyring-1)',
+                ],
+                'libraries': [
+                  '<!@(<(pkg-config) --libs-only-l gnome-keyring-1)',
+                ],
+              },
+            }, {
+              'link_settings': {
+                'libraries': [
+                  '-ldl',
+                ],
+              },
+            }],
+          ],
+        }],
+      ],
+    },
+    {
+      'target_name': 'dbus-glib',
+      'type': 'settings',
+      'direct_dependent_settings': {
+        'cflags': [
+          '<!@(<(pkg-config) --cflags dbus-glib-1)',
+        ],
+      },
+      'link_settings': {
+        'ldflags': [
+          '<!@(<(pkg-config) --libs-only-L --libs-only-other dbus-glib-1)',
+        ],
+        'libraries': [
+          '<!@(<(pkg-config) --libs-only-l dbus-glib-1)',
+        ],
+      },
+    },
+    {
+      'target_name': 'libresolv',
+      'type': 'settings',
+      'link_settings': {
+        'libraries': [
+          '-lresolv',
+        ],
+      },
+    },
   ],
 }
 
