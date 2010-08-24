@@ -23,24 +23,24 @@ MSYS/MinGW build in Windows.  This reduces the number of DLLs required for
 distribution, and lowers the total size of the binaries.
 
 Steps for extracting:
-  1) Extract ffmpeg-mt, which creates the directory ffmpeg-mt:
+::  1) Extract ffmpeg-mt, which creates the directory ffmpeg-mt:
        tar xf ffmpeg-mt.tar.gz
-  3) Extract libswscale in place:
+::  2) Extract libswscale in place:
        cd ffmpeg-mt
        tar xf ../libswscale.tar.gz
-  4) Apply the static_pthread_O2.patch:
+::  3) Apply patches:
        patch -p1 < ../patches/to_upstream/01_static_pthread_O2.patch
-  5) Apply additional security patches:
        patch -p1 < ../patches/to_upstream/02_mov_dref_looping.patch
-       patch -p1 < ../patches/to_upstream/04_mpeg4_video_to_elementary_stream.patch
-       patch -p1 < ../patches/to_upstream/05_vc1_bsfs.patch
-       patch -p1 < ../patches/to_upstream/06_respect_flac_dirac_configure.patch
-       patch -p1 < ../patches/to_upstream/08_ogg_seek_missing_first_frame.patch
-       patch -p1 < ../patches/to_upstream/09_remove_decode_on_config_no_svq3.patch
-       patch -p1 < ../patches/ugly/13_get_bits_overrun.patch
-       patch -p1 < ../patches/ugly/14_enforce_theora_oob.patch
-       patch -p1 < ../patches/ugly/15_enforce_vorbis_oob_divzero.patch
-       patch -p1 < ../patches/ugly/16_aac_oob_read.patch
+       patch -p1 < ../patches/to_upstream/03_mpeg4_video_to_elementary_stream.patch
+       patch -p1 < ../patches/to_upstream/04_vc1_bsfs.patch
+       patch -p1 < ../patches/to_upstream/05_respect_flac_dirac_configure.patch
+       patch -p1 < ../patches/to_upstream/06_remove_decode_on_config_no_svq3.patch
+       patch -p1 < ../patches/ugly/07_get_bits_overrun.patch
+       patch -p1 < ../patches/ugly/08_enforce_theora_oob.patch
+       patch -p1 < ../patches/ugly/09_enforce_vorbis_oob_divzero.patch
+       patch -p1 < ../patches/ugly/10_aac_oob_read.patch
+       patch -p1 < ../patches/ugly/11_ogg_seek_first_frame.patch
+       patch -p1 < ../patches/to_upstream/12_vp3_key_frame_after_flush.patch
 
 There is also a script "make_src_tree.sh" that automates most of the steps
 above for you.  It is currently only tested on linux.

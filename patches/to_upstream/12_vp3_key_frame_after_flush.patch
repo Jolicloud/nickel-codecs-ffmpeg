@@ -1,0 +1,66 @@
+Index: patched-ffmpeg-mt/libavcodec/vp3.c
+===================================================================
+--- patched-ffmpeg-mt/libavcodec/vp3.c	(revision 43500)
++++ patched-ffmpeg-mt/libavcodec/vp3.c	(working copy)
+@@ -134,6 +134,7 @@
+     AVFrame last_frame;
+     AVFrame current_frame;
+     int keyframe;
++    int flushed;
+     DSPContext dsp;
+     int flipped_image;
+     int last_slice_end;
+@@ -1594,6 +1595,7 @@
+     s->avctx = avctx;
+     s->width = FFALIGN(avctx->width, 16);
+     s->height = FFALIGN(avctx->height, 16);
++    s->flushed = 0;
+     if (avctx->pix_fmt == PIX_FMT_NONE)
+         avctx->pix_fmt = PIX_FMT_YUV420P;
+     avctx->chroma_sample_location = AVCHROMA_LOC_CENTER;
+@@ -1874,7 +1876,7 @@
+         if (s->qps[i] != s->last_qps[i] || s->qps[0] != s->last_qps[0])
+             init_dequantizer(s, i);
+ 
+-    if (avctx->skip_frame >= AVDISCARD_NONKEY && !s->keyframe)
++    if (!s->keyframe && (avctx->skip_frame >= AVDISCARD_NONKEY || s->flushed))
+         return buf_size;
+ 
+     s->current_frame.reference = 3;
+@@ -1885,6 +1887,7 @@
+     }
+ 
+     if (s->keyframe) {
++        s->flushed = 0;
+         if (!s->theora)
+         {
+             skip_bits(&gb, 4); /* width code */
+@@ -2023,6 +2026,12 @@
+     return 0;
+ }
+ 
++static void vp3_decode_flush (AVCodecContext *avctx) {
++    // FIXME: Actually flush data.
++    Vp3DecodeContext *s = avctx->priv_data;
++    s->flushed = 1;
++}
++
+ static int read_huffman_tree(AVCodecContext *avctx, GetBitContext *gb)
+ {
+     Vp3DecodeContext *s = avctx->priv_data;
+@@ -2321,6 +2330,7 @@
+     vp3_decode_frame,
+     CODEC_CAP_DR1 | CODEC_CAP_DRAW_HORIZ_BAND | CODEC_CAP_FRAME_THREADS,
+     NULL,
++    .flush = vp3_decode_flush,
+     .long_name = NULL_IF_CONFIG_SMALL("Theora"),
+     .update_thread_context = ONLY_IF_THREADS_ENABLED(vp3_update_thread_context)
+ };
+@@ -2337,6 +2347,7 @@
+     vp3_decode_frame,
+     CODEC_CAP_DR1 | CODEC_CAP_DRAW_HORIZ_BAND | CODEC_CAP_FRAME_THREADS,
+     NULL,
++    .flush = vp3_decode_flush,
+     .long_name = NULL_IF_CONFIG_SMALL("On2 VP3"),
+     .update_thread_context = ONLY_IF_THREADS_ENABLED(vp3_update_thread_context)
+ };

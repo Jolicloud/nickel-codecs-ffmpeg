@@ -1,6 +1,6 @@
-diff -rpu unpatched-ffmpeg-mt/configure patched-ffmpeg-mt/configure
---- unpatched-ffmpeg-mt/configure	2010-03-09 09:38:31 -0800
-+++ patched-ffmpeg-mt/configure	2010-03-22 19:42:37 -0700
+diff -rpu -N unpatched-ffmpeg-mt/configure patched-ffmpeg-mt/configure
+--- unpatched-ffmpeg-mt/configure	2010-03-29 16:40:27 -0700
++++ patched-ffmpeg-mt/configure	2010-03-31 19:01:13 -0700
 @@ -1711,7 +1711,7 @@ if   $cc -v 2>&1 | grep -qi ^gcc; then
          CC_DEPFLAGS='-MMD -MF $(@:.o=.d) -MT $@'
          AS_DEPFLAGS='-MMD -MF $(@:.o=.d) -MT $@'
@@ -20,7 +20,7 @@ diff -rpu unpatched-ffmpeg-mt/configure patched-ffmpeg-mt/configure
      elif ! check_lib pthread.h pthread_create -lpthread; then
          die "ERROR: can't find pthreads library"
      fi
-@@ -2755,7 +2755,7 @@ elif enabled ccc; then
+@@ -2752,7 +2755,7 @@ elif enabled ccc; then
  elif enabled gcc; then
      check_cflags -fno-tree-vectorize
      check_cflags -Werror=implicit
@@ -29,13 +29,13 @@ diff -rpu unpatched-ffmpeg-mt/configure patched-ffmpeg-mt/configure
  elif enabled clang; then
      check_cflags -Qunused-arguments
  elif enabled armcc; then
-diff -rpu unpatched-ffmpeg-mt/libavcodec/allcodecs.c patched-ffmpeg-mt/libavcodec/allcodecs.c
---- unpatched-ffmpeg-mt/libavcodec/allcodecs.c	2010-03-09 09:38:32 -0800
-+++ patched-ffmpeg-mt/libavcodec/allcodecs.c	2010-03-22 19:42:37 -0700
+diff -rpu -N unpatched-ffmpeg-mt/libavcodec/allcodecs.c patched-ffmpeg-mt/libavcodec/allcodecs.c
+--- unpatched-ffmpeg-mt/libavcodec/allcodecs.c	2010-03-29 14:43:02 -0700
++++ patched-ffmpeg-mt/libavcodec/allcodecs.c	2010-03-31 19:01:13 -0700
 @@ -45,6 +45,14 @@
            extern AVBitStreamFilter x##_bsf; \
            if(CONFIG_##X##_BSF)     av_register_bitstream_filter(&x##_bsf); }
-
+ 
 +#ifdef PTW32_STATIC_LIB
 +static void detach_ptw32(void)
 +{
@@ -50,7 +50,7 @@ diff -rpu unpatched-ffmpeg-mt/libavcodec/allcodecs.c patched-ffmpeg-mt/libavcode
 @@ -53,6 +61,11 @@ void avcodec_register_all(void)
          return;
      initialized = 1;
-
+ 
 +#ifdef PTW32_STATIC_LIB
 +    pthread_win32_process_attach_np();
 +    pthread_win32_thread_attach_np();
