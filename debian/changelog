@@ -1,3 +1,21 @@
+nickel-codecs-ffmpeg (0.6+svn20100811r55740+56137-1jolicloud0) robby; urgency=low
+
+  [ Benjamin Ryzman ]
+  * Imported Upstream version 0.5+svn20100406r43776+43794+43724
+
+  [ Fabien Tassin ]
+  * Imported Debian patch 0.5+svn20100406r43776+43794+43724-
+    0ubuntu1~ucd1~jaunty
+
+  [ Benjamin Ryzman ]
+  * Imported Upstream version 0.6+svn20100811r55740+56137
+
+  [ Fabien Tassin ]
+  * Imported Debian patch 0.6+svn20100811r55740+56137-
+    0ubuntu1~ucd1~jaunty
+
+ -- Benjamin Ryzman <benjamin@jolicloud.org>  Tue, 24 Aug 2010 18:22:57 +0200
+
 chromium-codecs-ffmpeg (0.6+svn20100811r55740+56137-0ubuntu1~ucd1~jaunty) jaunty; urgency=low
 
   * Drop the sse2 patch, it has been applied upstream, and set disable_sse2
