@@ -56,7 +56,7 @@ Package: nickel-codecs-ffmpeg-extra-dbg
 Architecture: any
 Section: debug
 Priority: extra
-Depends: ${shlibs:Depends}, ${misc:Depends}, nickel-codecs-ffmpeg (= ${binary:Version})
+Depends: ${shlibs:Depends}, ${misc:Depends}, nickel-codecs-ffmpeg-extra (= ${binary:Version})
 Conflicts: nickel-codecs-ffmpeg-dbg, nickel-codecs-ffmpeg-nonfree-dbg (<< 0.5+svn20100323r42310+42573+42709)
 Replaces: nickel-codecs-ffmpeg-dbg, nickel-codecs-ffmpeg-nonfree-dbg
 Provides: nickel-codecs-ffmpeg-nonfree-dbg

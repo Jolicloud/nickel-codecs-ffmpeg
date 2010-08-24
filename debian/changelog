@@ -1,3 +1,10 @@
+chromium-codecs-ffmpeg (0.5+svn20100406r43776+43794+43724-0ubuntu1~ucd1~jaunty) jaunty; urgency=low
+
+  * Fix broken "Depends" for chromium-codecs-ffmpeg-extra-dbg
+    - update debian/control
+
+ -- Fabien Tassin <fta@ubuntu.com>  Wed, 07 Apr 2010 04:00:01 +0200
+
 nickel-codecs-ffmpeg (0.5+svn20100326r42726+42573+42890-1jolicloud1) robby; urgency=low
 
   * rename Chromium to Nickel
@@ -6,6 +13,6 @@ nickel-codecs-ffmpeg (0.5+svn20100326r42726+42573+42890-1jolicloud1) robby; urge
 
 chromium-codecs-ffmpeg (0.5+svn20100326r42726+42573+42890-0ubuntu1~ucd2~jaunty) jaunty; urgency=low
 
-  * Initial release. (Closes: #XXXXXX)
+  * Initial release. (LP: #537617, #513776)
 
  -- Fabien Tassin <fta@ubuntu.com>  Sat, 27 Mar 2010 13:03:29 +0100

@@ -208,6 +208,10 @@
     # Disable TCMalloc's heapchecker.
     'linux_use_heapchecker%': 0,
 
+    # Set to 1 to turn on seccomp sandbox by default.
+    # (Note: this is ignored for official builds.)
+    'linux_use_seccomp_sandbox%': 0,
+
     # Set to select the Title Case versions of strings in GRD files.
     'use_titlecase_in_grd_files%': 0,
 
@@ -685,7 +689,7 @@
     },
   },
   'conditions': [
-    ['OS=="linux" or OS=="freebsd" or OS=="openbsd"', {
+    ['OS=="linux" or OS=="freebsd" or OS=="openbsd" or OS=="solaris"', {
       'target_defaults': {
         # Enable -Werror by default, but put it in a variable so it can
         # be disabled in ~/.gyp/include.gypi on the valgrind builders.
@@ -726,7 +730,7 @@
           '-fvisibility-inlines-hidden',
         ],
         'ldflags': [
-          '-pthread',
+          '-pthread', '-Wl,-z,noexecstack',
         ],
         'scons_variable_settings': {
           'LIBPATH': ['$LIB_DIR'],
@@ -957,6 +961,9 @@
             'cflags': [ '-gstabs' ],
             'defines': ['USE_LINUX_BREAKPAD'],
           }],
+          ['linux_use_seccomp_sandbox==1 and buildtype!="Official"', {
+            'defines': ['USE_SECCOMP_SANDBOX'],
+          }],
           ['library=="shared_library"', {
             # When building with shared libraries, remove the visiblity-hiding
             # flag.
@@ -988,6 +995,10 @@
           '-Wl,--no-keep-memory',
         ],
       },
+    }],
+    ['OS=="solaris"', {
+      'cflags!': ['-fvisibility=hidden'],
+      'cflags_cc!': ['-fvisibility-inlines-hidden'],
     }],
     ['OS=="mac"', {
       'target_defaults': {
@@ -1163,8 +1174,7 @@
         },
       },
     }],
-    # Disable native client on FreeBSD/OpenBSD for now
-    ['disable_nacl==1 or OS=="freebsd" or OS=="openbsd"', {
+    ['disable_nacl==1 or OS=="freebsd" or OS=="openbsd" or OS=="solaris"', {
       'target_defaults': {
         'defines': [
           'DISABLE_NACL',
