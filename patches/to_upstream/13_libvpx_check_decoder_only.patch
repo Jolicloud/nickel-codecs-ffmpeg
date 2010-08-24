@@ -1,0 +1,14 @@
+diff -rpu -N orig/configure ffmpeg-mt/configure
+--- orig/configure	2010-07-28 14:53:40.212277500 -0700
++++ ffmpeg-mt/configure	2010-07-28 14:53:54.825738700 -0700
+@@ -2657,8 +2657,8 @@ enabled libschroedinger && add_cflags $(
+ enabled libspeex   && require  libspeex speex/speex.h speex_decoder_init -lspeex
+ enabled libtheora  && require  libtheora theora/theoraenc.h th_info_init -ltheoraenc -ltheoradec -logg
+ enabled libvorbis  && require  libvorbis vorbis/vorbisenc.h vorbis_info_init -lvorbisenc -lvorbis -logg
+-enabled libvpx     && { check_lib2 "vpx/vpx_decoder.h vpx/vp8dx.h" vpx_codec_dec_init_ver -lvpx &&
+-                        check_lib2 "vpx/vpx_encoder.h vpx/vp8cx.h" vpx_codec_enc_init_ver -lvpx ||
++# only check decoder version to allow linking with libvpx built with --enable-vp8-decoder
++enabled libvpx     && { check_lib2 "vpx/vpx_decoder.h vpx/vp8dx.h" vpx_codec_dec_init_ver -lvpx ||
+                       die "ERROR: libvpx version must be >=0.9.1"; }
+ enabled libx264    && require  libx264 x264.h x264_encoder_encode -lx264 &&
+                       { check_cpp_condition x264.h "X264_BUILD >= 98" ||

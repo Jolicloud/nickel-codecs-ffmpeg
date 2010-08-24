@@ -1,7 +1,7 @@
-diff -rpu -N unpatched-ffmpeg-mt/configure patched-ffmpeg-mt/configure
---- unpatched-ffmpeg-mt/configure	2010-03-29 16:40:27 -0700
-+++ patched-ffmpeg-mt/configure	2010-03-31 19:01:13 -0700
-@@ -1711,7 +1711,7 @@ if   $cc -v 2>&1 | grep -qi ^gcc; then
+diff -rpu -N orig/configure ffmpeg-mt/configure
+--- orig/configure	2010-07-27 13:05:17.865562700 -0700
++++ ffmpeg-mt/configure	2010-07-27 13:05:29.670743100 -0700
+@@ -1788,7 +1788,7 @@ if   $cc -v 2>&1 | grep -qi ^gcc; then
          CC_DEPFLAGS='-MMD -MF $(@:.o=.d) -MT $@'
          AS_DEPFLAGS='-MMD -MF $(@:.o=.d) -MT $@'
      fi
@@ -10,7 +10,7 @@ diff -rpu -N unpatched-ffmpeg-mt/configure patched-ffmpeg-mt/configure
      size_cflags='-Os'
  elif $cc --version 2>/dev/null | grep -q Intel; then
      cc_type=icc
-@@ -2555,6 +2555,9 @@ if enabled pthreads; then
+@@ -2607,6 +2607,9 @@ if ! disabled pthreads && ! enabled w32t
          add_extralibs -pthreads
      elif check_func pthread_create -lpthreadGC2; then
          add_extralibs -lpthreadGC2
@@ -18,20 +18,19 @@ diff -rpu -N unpatched-ffmpeg-mt/configure patched-ffmpeg-mt/configure
 +        add_cflags -DPTW32_STATIC_LIB
 +        add_extralibs -lpthreadGC2 -lws2_32
      elif ! check_lib pthread.h pthread_create -lpthread; then
-         die "ERROR: can't find pthreads library"
+         disable pthreads
      fi
-@@ -2752,7 +2755,7 @@ elif enabled ccc; then
+@@ -2823,7 +2826,6 @@ elif enabled ccc; then
  elif enabled gcc; then
      check_cflags -fno-tree-vectorize
-     check_cflags -Werror=implicit
+     check_cflags -Werror=implicit-function-declaration
 -    check_cflags -Werror=missing-prototypes
-+#    check_cflags -Werror=missing-prototypes
  elif enabled clang; then
      check_cflags -Qunused-arguments
  elif enabled armcc; then
-diff -rpu -N unpatched-ffmpeg-mt/libavcodec/allcodecs.c patched-ffmpeg-mt/libavcodec/allcodecs.c
---- unpatched-ffmpeg-mt/libavcodec/allcodecs.c	2010-03-29 14:43:02 -0700
-+++ patched-ffmpeg-mt/libavcodec/allcodecs.c	2010-03-31 19:01:13 -0700
+diff -rpu -N orig/libavcodec/allcodecs.c ffmpeg-mt/libavcodec/allcodecs.c
+--- orig/libavcodec/allcodecs.c	2010-07-27 13:05:18.281604300 -0700
++++ ffmpeg-mt/libavcodec/allcodecs.c	2010-07-27 13:05:29.675743600 -0700
 @@ -45,6 +45,14 @@
            extern AVBitStreamFilter x##_bsf; \
            if(CONFIG_##X##_BSF)     av_register_bitstream_filter(&x##_bsf); }

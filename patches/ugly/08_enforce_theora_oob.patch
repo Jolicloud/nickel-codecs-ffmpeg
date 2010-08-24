@@ -1,10 +1,10 @@
-diff -rpu unpatched_ffmpeg-mt/libavcodec/vp3.c ffmpeg-mt/libavcodec/vp3.c
---- unpatched_ffmpeg-mt/libavcodec/vp3.c	2010-03-11 17:46:30 -0800
-+++ ffmpeg-mt/libavcodec/vp3.c	2010-03-11 19:13:21 -0800
-@@ -922,6 +922,11 @@ static int unpack_vlcs(Vp3DecodeContext
+diff -rpu -N orig/libavcodec/vp3.c ffmpeg-mt/libavcodec/vp3.c
+--- orig/libavcodec/vp3.c	2010-07-27 13:08:07.764550900 -0700
++++ ffmpeg-mt/libavcodec/vp3.c	2010-07-27 13:08:10.052779700 -0700
+@@ -868,6 +868,11 @@ static int unpack_vlcs(Vp3DecodeContext
      int num_coeffs = s->num_coded_frags[plane][coeff_index];
      int16_t *dct_tokens = s->dct_tokens[plane][coeff_index];
-
+ 
 +#ifdef ALT_BITSTREAM_READER
 +    if (gb->buffer_exhausted && gb->index > gb->size_in_bits)
 +        return 0;
@@ -13,10 +13,10 @@ diff -rpu unpatched_ffmpeg-mt/libavcodec/vp3.c ffmpeg-mt/libavcodec/vp3.c
      /* local references to structure members to avoid repeated deferences */
      int *coded_fragment_list = s->coded_fragment_list[plane];
      Vp3Fragment *all_fragments = s->all_fragments;
-@@ -1099,6 +1104,11 @@ static int unpack_dct_coeffs(Vp3DecodeCo
+@@ -1045,6 +1050,11 @@ static int unpack_dct_coeffs(Vp3DecodeCo
                  2, residual_eob_run);
      }
-
+ 
 +#ifdef ALT_BITSTREAM_READER
 +    if (gb->buffer_exhausted && gb->index > gb->size_in_bits)
 +        return 1;
@@ -24,21 +24,20 @@ diff -rpu unpatched_ffmpeg-mt/libavcodec/vp3.c ffmpeg-mt/libavcodec/vp3.c
 +
      return 0;
  }
-
-@@ -1882,6 +1892,7 @@ static int vp3_decode_frame(AVCodecConte
+ 
+@@ -1844,6 +1854,7 @@ static int vp3_decode_frame(AVCodecConte
      int i;
-
+ 
      init_get_bits(&gb, buf, buf_size * 8);
 +    gb.buffer_enforcing = 1;
-
+ 
      if (s->theora && get_bits1(&gb))
      {
-@@ -2305,6 +2316,7 @@ static av_cold int theora_decode_init(AV
-
+@@ -2285,6 +2296,7 @@ static av_cold int theora_decode_init(AV
+ 
    for(i=0;i<3;i++) {
      init_get_bits(&gb, header_start[i], header_len[i] * 8);
 +    gb.buffer_enforcing = 1;
-
+ 
      ptype = get_bits(&gb, 8);
-
-
+ 

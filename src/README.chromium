@@ -3,45 +3,53 @@ Chromium.
 
 The FFmpeg source is from Alexander Strange's ffmpeg-mt branch:
   git://gitorious.org/~astrange/ffmpeg/ffmpeg-mt.git
-  Commit: 42b521db9177ed2d4e62845659fdcd44c59757f9
 
-This corresponds to r18769 in the mainline ffmpeg repository.
-
-The Theora patches are also from the ffmpeg-mt branch above.  The git commit
-numbers and the corresponding svn revisions for them from ffmpeg mainline can
-be found at the top of each patch.
+  Date: Monday July 18 2010
+  Commit: 82324906156d303d5f3b3e10a1855bf05614ebfc
+  This corresponds to 24286 in the mainline ffmpeg repository.
 
 The libswscale source is from the public libswscale repository:
   git://git.ffmpeg.org/libswscale
-  Commit: 69fc1002e2c92aac84dccc5047141feefc94b309
+  Date: Monday July 19 2010
+  Commit: 5f2022a328eb5fef40f57e35e96cb35c4decd2d6
+
+libvpx source
+  git://review.webmproject.org/libvpx.git
+  Commit: e4fe866949951c8eb79c5ebdb0a6dab37cef37a9
+  Version is v0.9.1-84-ge4fe866
+  Date: Monday Aug 11 2010
 
 The static_pthread_O2.patch does two things.  First, it uses -O2 instead of
--O3 to build ffmpeg.  This yields a significant savings in binary size, and
-also seems to improve performance (lower CPU usage).  Second, the patch adds
-a modification that statically links pthreadGC2 into avcodec-52.dll on an
-MSYS/MinGW build in Windows.  This reduces the number of DLLs required for
-distribution, and lowers the total size of the binaries.
+-O3 to build ffmpeg, improving size and performance on Pentium4 and Core.
+Second, the patch adds a modification that statically links pthreadGC2
+into avcodec-52.dll on an MSYS/MinGW build in Windows.  This reduces the
+number of DLLs required for distribution, and lowers the total size of the
+binaries.
 
 Steps for extracting:
-::  1) Extract ffmpeg-mt, which creates the directory ffmpeg-mt:
+#  1) Extract ffmpeg-mt, which creates the directory ffmpeg-mt:
+       cd /cygdrive/c/src/chromium/deps/third_party/ffmpeg
+       rm -rf ffmpeg-mt
        tar xf ffmpeg-mt.tar.gz
-::  2) Extract libswscale in place:
+#  2) Extract libswscale in place:
        cd ffmpeg-mt
        tar xf ../libswscale.tar.gz
-::  3) Apply patches:
-       patch -p1 < ../patches/to_upstream/01_static_pthread_O2.patch
-       patch -p1 < ../patches/to_upstream/02_mov_dref_looping.patch
-       patch -p1 < ../patches/to_upstream/03_mpeg4_video_to_elementary_stream.patch
-       patch -p1 < ../patches/to_upstream/04_vc1_bsfs.patch
-       patch -p1 < ../patches/to_upstream/05_respect_flac_dirac_configure.patch
-       patch -p1 < ../patches/to_upstream/06_remove_decode_on_config_no_svq3.patch
-       patch -p1 < ../patches/ugly/07_get_bits_overrun.patch
-       patch -p1 < ../patches/ugly/08_enforce_theora_oob.patch
-       patch -p1 < ../patches/ugly/09_enforce_vorbis_oob_divzero.patch
-       patch -p1 < ../patches/ugly/10_aac_oob_read.patch
-       patch -p1 < ../patches/ugly/11_ogg_seek_first_frame.patch
-       patch -p1 < ../patches/to_upstream/12_vp3_key_frame_after_flush.patch
-
+#  3) Apply patches:
+       patch -p1 --no-backup-if-mismatch < ../patches/to_upstream/01_static_pthread_O2.patch
+       patch -p1 --no-backup-if-mismatch < ../patches/to_upstream/02_mov_dref_looping.patch
+       patch -p1 --no-backup-if-mismatch < ../patches/to_upstream/03_mpeg4_video_to_elementary_stream.patch
+       patch -p1 --no-backup-if-mismatch < ../patches/to_upstream/04_vc1_bsfs.patch
+       patch -p1 --no-backup-if-mismatch < ../patches/to_upstream/05_respect_flac_dirac_configure.patch
+       patch -p1 --no-backup-if-mismatch < ../patches/to_upstream/06_remove_decode_on_config_no_svq3.patch
+       patch -p1 --no-backup-if-mismatch < ../patches/ugly/07_get_bits_overrun.patch
+       patch -p1 --no-backup-if-mismatch < ../patches/ugly/08_enforce_theora_oob.patch
+       patch -p1 --no-backup-if-mismatch < ../patches/ugly/09_enforce_vorbis_oob_divzero.patch
+       patch -p1 --no-backup-if-mismatch < ../patches/ugly/10_aac_oob_read.patch
+       patch -p1 --no-backup-if-mismatch < ../patches/to_upstream/11_mkv_buffer_overflow.patch
+       patch -p1 --no-backup-if-mismatch < ../patches/to_upstream/12_ogg_seek_to_zero.patch
+       patch -p1 --no-backup-if-mismatch < ../patches/to_upstream/13_libvpx_check_decoder_only.patch
+       cd ..
+       
 There is also a script "make_src_tree.sh" that automates most of the steps
 above for you.  It is currently only tested on linux.
 
@@ -51,35 +59,40 @@ or 7-Zip to extract the archives.  We've experienced issues when using WinRAR.
 Since FFmpeg is sandboxed inside the render process, we're only interested in
 building the absolute minimum.
 
-Example configure flags suitable for Chromium (Ogg+Theora+Vorbis), which will
-build and install to the directory ./chromium-ffmpeg:
+Example configure flags suitable for Chromium (WebM and Ogg),
+which will build and install to the directory ./chromium-ffmpeg:
 
-  ./configure --disable-ffmpeg --disable-ffplay --disable-ffserver             \
-              --enable-shared --disable-static --disable-debug                 \
-      	      --disable-network --disable-encoders --disable-decoders          \
-      	      --disable-hwaccels --disable-muxers --disable-demuxers           \
-      	      --disable-parsers --disable-bsfs --disable-protocols             \
-      	      --disable-devices --disable-filters --disable-gpl                \
-      	      --enable-decoder=theora --enable-decoder=vorbis                  \
-      	      --enable-demuxer=ogg --enable-pthreads --enable-yasm             \
-      	      --prefix=./chromium-ffmpeg
+   ./configure --disable-everything --disable-decoders --disable-protocols     \
+               --disable-parsers --disable-avfilter --disable-avdevice         \
+               --disable-ffmpeg --disable-ffplay                               \
+               --disable-ffprobe --enable-shared --disable-static              \
+	       --disable-debug --disable-network --disable-gpl --disable-bzlib \
+	       --disable-zlib --enable-decoder=vp3 --enable-decoder=vorbis     \
+	       --enable-demuxer=ogg --enable-pthreads --enable-yasm            \
+	       --enable-memalign-hack --cc=gcc-sjlj --prefix=./chromium-ffmpeg \
+	       --enable-libvpx --enable-decoder=libvpx                         \
+	       --enable-demuxer=matroska                                       \
+	       --extra-cflags='-I../../usr/local/include' --disable-decoders
 
 The following flags are used for Google Chrome, which also include non-free
 decoders (H.264, AAC and MP3):
-  ./configure --disable-ffmpeg --disable-ffplay --disable-ffserver             \
-              --enable-shared --disable-static --disable-debug                 \
-      	      --disable-network --disable-encoders --disable-decoders          \
-      	      --disable-hwaccels --disable-muxers --disable-demuxers           \
-      	      --disable-parsers --disable-bsfs --disable-protocols             \
-      	      --disable-devices --disable-filters --disable-gpl                \
-              --enable-decoder=theora --enable-decoder=vorbis                  \
-      	      --enable-demuxer=ogg --enable-decoder=aac --enable-decoder=h264  \
-      	      --enable-decoder=mp3 --enable-demuxer=mp3 --enable-demuxer=mov   \
-      	      --enable-parser=mpegaudio --enable-pthreads --enable-yasm        \
-      	      --prefix=./chrome-ffmpeg
+
+   ./configure --disable-everything --disable-decoders --disable-protocols     \
+               --disable-parsers --disable-avfilter --disable-avdevice         \
+               --disable-ffmpeg --disable-ffplay                               \
+               --disable-ffprobe --enable-shared --disable-static              \
+	       --disable-debug --disable-network --disable-gpl --disable-bzlib \
+	       --disable-zlib --enable-decoder=vp3 --enable-decoder=vorbis     \
+	       --enable-demuxer=ogg --enable-decoder=aac --enable-decoder=h264 \
+	       --enable-decoder=mp3 --enable-demuxer=mp3 --enable-demuxer=mov  \
+	       --enable-parser=mpegaudio --enable-pthreads --enable-yasm       \
+	       --enable-memalign-hack --cc=gcc-sjlj --prefix=./chrome-ffmpeg   \
+	       --enable-libvpx --enable-decoder=libvpx                         \
+	       -enable-demuxer=matroska                                        \
+	       --extra-cflags='-I../../usr/local/include'
 
 If building on Windows with Chromium's MinGW/MSYS environment, add the following:
-              --target-os=mingw32 --enable-memalign-hack --cc=gcc-sjlj
+              --enable-memalign-hack --cc=gcc-sjlj
 
 To build:
   make
@@ -96,8 +109,8 @@ features:
            > Visual Studio 2005 Command Prompt
   2) Change directories to where the DLLs were built
   3) editbin.exe /NXCOMPAT /DYNAMICBASE *.dll
-Now copy the resulting avcodec-52.dll, avformat-52.dll, and
-avutil-50.dll alongside chrome.exe for windows.
+Now copy the resulting avcodec-52.dll, avformat-52.dll, and avutil-50.dll
+alongside chrome.exe for Windows.
 
 On Mac, copy the resulting libavcodec.52.dylib, libavformat.52.dylib, and
 libavutil.50.dylib into the Chromium.app/Contents/MacOS folder alongside the
@@ -105,3 +118,128 @@ Chromium binary.
 
 On Linux, copy the resulting libavcodec.so.52, libavformat.so.52, and
 libavutil.so.50 alongside the chrome executable.
+
+To clean up patches so there is no fuzzing
+#  1) Extract ffmpeg-mt, which creates the directory ffmpeg-mt:
+       cd /cygdrive/c/src/chromium/deps/third_party/ffmpeg
+       rm -rf ffmpeg-mt
+       tar xf ffmpeg-mt.tar.gz
+#  2) Extract libswscale in place:
+       cd ffmpeg-mt
+       tar xf ../libswscale.tar.gz
+       cd ..
+       
+#  3) Apply patches:
+       rm -rf orig
+       cp -R ffmpeg-mt orig
+       cd ffmpeg-mt
+       patch -p1 --no-backup-if-mismatch < ../patches/to_upstream/01_static_pthread_O2.patch
+       cd ..
+       diff -rpu -N orig ffmpeg-mt
+       diff -rpu -N orig ffmpeg-mt >patches/to_upstream/01_static_pthread_O2.patch
+
+       rm -rf orig
+       cp -R ffmpeg-mt orig
+       cd ffmpeg-mt
+       patch -p1 --no-backup-if-mismatch < ../patches/to_upstream/02_mov_dref_looping.patch
+       cd ..
+       diff -rpu -N orig ffmpeg-mt
+       diff -rpu -N orig ffmpeg-mt >patches/to_upstream/02_mov_dref_looping.patch
+
+       rm -rf orig
+       cp -R ffmpeg-mt orig
+       cd ffmpeg-mt
+       patch -p1 --no-backup-if-mismatch < ../patches/to_upstream/03_mpeg4_video_to_elementary_stream.patch
+       cd ..
+       diff -rpu -N orig ffmpeg-mt
+       diff -rpu -N orig ffmpeg-mt >patches/to_upstream/03_mpeg4_video_to_elementary_stream.patch
+
+       rm -rf orig
+       cp -R ffmpeg-mt orig
+       cd ffmpeg-mt
+       patch -p1 --no-backup-if-mismatch < ../patches/to_upstream/04_vc1_bsfs.patch
+       cd ..
+       diff -rpu -N orig ffmpeg-mt
+       diff -rpu -N orig ffmpeg-mt >patches/to_upstream/04_vc1_bsfs.patch
+
+       rm -rf orig
+       cp -R ffmpeg-mt orig
+       cd ffmpeg-mt
+       patch -p1 --no-backup-if-mismatch < ../patches/to_upstream/05_respect_flac_dirac_configure.patch
+       cd ..
+       diff -rpu -N orig ffmpeg-mt
+       diff -rpu -N orig ffmpeg-mt >patches/to_upstream/05_respect_flac_dirac_configure.patch
+
+       rm -rf orig
+       cp -R ffmpeg-mt orig
+       cd ffmpeg-mt
+       patch -p1 --no-backup-if-mismatch < ../patches/to_upstream/06_remove_decode_on_config_no_svq3.patch
+       cd ..
+       diff -rpu -N orig ffmpeg-mt
+       diff -rpu -N orig ffmpeg-mt >patches/to_upstream/06_remove_decode_on_config_no_svq3.patch
+
+       rm -rf orig
+       cp -R ffmpeg-mt orig
+       cd ffmpeg-mt
+       patch -p1 --no-backup-if-mismatch < ../patches/ugly/07_get_bits_overrun.patch
+       cd ..
+       diff -rpu -N orig ffmpeg-mt
+       diff -rpu -N orig ffmpeg-mt >patches/ugly/07_get_bits_overrun.patch
+
+       rm -rf orig
+       cp -R ffmpeg-mt orig
+       cd ffmpeg-mt
+       patch -p1 --no-backup-if-mismatch < ../patches/ugly/08_enforce_theora_oob.patch
+       cd ..
+       diff -rpu -N orig ffmpeg-mt
+       diff -rpu -N orig ffmpeg-mt >patches/ugly/08_enforce_theora_oob.patch
+
+       rm -rf orig
+       cp -R ffmpeg-mt orig
+       cd ffmpeg-mt
+       patch -p1 --no-backup-if-mismatch < ../patches/ugly/09_enforce_vorbis_oob_divzero.patch
+       cd ..
+       diff -rpu -N orig ffmpeg-mt
+       diff -rpu -N orig ffmpeg-mt >patches/ugly/09_enforce_vorbis_oob_divzero.patch
+
+       rm -rf orig
+       cp -R ffmpeg-mt orig
+       cd ffmpeg-mt
+       patch -p1 --no-backup-if-mismatch < ../patches/ugly/10_aac_oob_read.patch
+       cd ..
+       diff -rpu -N orig ffmpeg-mt
+       diff -rpu -N orig ffmpeg-mt >patches/ugly/10_aac_oob_read.patch
+
+       rm -rf orig
+       cp -R ffmpeg-mt orig
+       cd ffmpeg-mt
+       patch -p1 --no-backup-if-mismatch < ../patches/to_upstream/11_mkv_buffer_overflow.patch
+       cd ..
+       diff -rpu -N orig ffmpeg-mt
+       diff -rpu -N orig ffmpeg-mt >patches/to_upstream/11_mkv_buffer_overflow.patch
+
+       rm -rf orig
+       cp -R ffmpeg-mt orig
+       cd ffmpeg-mt
+       patch -p1 --no-backup-if-mismatch < ../patches/to_upstream/12_ogg_seek_to_zero.patch
+       cd ..
+       diff -rpu -N orig ffmpeg-mt
+       diff -rpu -N orig ffmpeg-mt >patches/to_upstream/12_ogg_seek_to_zero.patch
+
+       rm -rf orig
+       cp -R ffmpeg-mt orig
+       cd ffmpeg-mt
+       patch -p1 --no-backup-if-mismatch < ../patches/to_upstream/13_libvpx_check_decoder_only.patch
+       cd ..
+       diff -rpu -N orig ffmpeg-mt
+       diff -rpu -N orig ffmpeg-mt >patches/to_upstream/13_libvpx_check_decoder_only.patch
+
+      
+Testing
+  Updates should be tested against
+  http://wiki.xiph.org/TheoraTestsuite
+  WebKit Layout Tests
+  http://www.chromium.org/developers/testing/webkit-layout-tests
+    make -j16 -r test_shell BUILDTYPE=Debug
+    ./src/webkit/tools/layout_tests/run_webkit_tests.sh --debug media/\*
+
