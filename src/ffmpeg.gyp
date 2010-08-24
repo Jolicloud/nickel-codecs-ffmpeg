@@ -2,6 +2,20 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+# There's a couple key GYP variables that control how FFmpeg is built:
+#   ffmpeg_branding
+#     Controls whether we build the Chromium or Google Chrome version of
+#     FFmpeg.  The Google Chrome version contains additional codecs.
+#     Typical values are Chromium, Chrome, ChromiumOS, and ChromeOS.
+#   use_system_ffmpeg
+#     When set to non-zero will build Chromium against the system FFmpeg
+#     headers via pkg-config.  When Chromium is launched it will assume that
+#     FFmpeg is present in the system library path.  Default value is 0.
+#   build_ffmpegsumo
+#     When set to zero will build Chromium against the patched ffmpegsumo
+#     headers, but not build ffmpegsumo itself.  Users are expected to build
+#     and provide their own version of ffmpegsumo.  Default value is 1.
+
 # TODO(ajwong): Determine if we want to statically link libz.
 
 {
@@ -38,41 +52,25 @@
       }, {
         'ffmpeg_config%': '<(target_arch)',
       }],
+      ['target_arch=="x64" or target_arch=="ia32"', {
+        'ffmpeg_asm_lib': 1,
+      }],
+      ['target_arch=="arm"', {
+        'ffmpeg_asm_lib': 0,
+      }],
     ],
     'ffmpeg_variant%': '<(target_arch)',
 
     'use_system_ffmpeg%': 0,
     'use_system_yasm%': 0,
+    'build_ffmpegsumo%': 1,
 
     # Locations for generated artifacts.
     'shared_generated_dir': '<(SHARED_INTERMEDIATE_DIR)/third_party/ffmpeg',
     'asm_library': 'ffmpegasm',
   },
   'conditions': [
-    # This condition is for migrating from pre-built binaries to an in-tree
-    # source build.  Most of these should be removed once FFmpeg is built on
-    # mac and linux.  Windows will take more work.
-    #
-    # TODO(ajwong): Per the comment above, reduce this conditional's size and
-    # determine if in-tree build in Windows is tractable.
-    ['(OS!="linux" and OS!="freebsd" and OS!="openbsd" and OS!="solaris" and OS!="mac") or use_system_ffmpeg!=0', {
-      'variables': {
-        'target_for_binaries': 'ffmpeg_binaries',
-        'ffmpeg_include_root': 'source/patched-ffmpeg-mt',
-      },
-    },{  # else OS=="linux"
-      'variables': {
-        'target_for_binaries': 'ffmpegsumo_nolink',
-        'ffmpeg_include_root': 'source/patched-ffmpeg-mt',
-        'conditions': [
-          ['target_arch=="x64" or target_arch=="ia32"', {
-            'ffmpeg_asm_lib': 1,
-          }],
-          ['target_arch=="arm"', {
-            'ffmpeg_asm_lib': 0,
-          }],
-        ],
-      },
+    ['OS!="win" and use_system_ffmpeg==0 and build_ffmpegsumo!=0', {
       'targets': [
         {
           'target_name': 'ffmpegsumo',
@@ -99,6 +97,7 @@
             'source/patched-ffmpeg-mt/libavcodec/raw.c',
             'source/patched-ffmpeg-mt/libavcodec/simple_idct.c',
             'source/patched-ffmpeg-mt/libavcodec/utils.c',
+            'source/patched-ffmpeg-mt/libavformat/vorbiscomment.c', # TODO(fbarchard): Roll5 Review this file.
             'source/patched-ffmpeg-mt/libavcodec/vorbis.c',
             'source/patched-ffmpeg-mt/libavcodec/vorbis_data.c',
             'source/patched-ffmpeg-mt/libavcodec/vorbis_dec.c',
@@ -163,6 +162,7 @@
                 'source/patched-ffmpeg-mt/libavcodec/h264_ps.c', # TODO(fbarchard): Review this file.
                 'source/patched-ffmpeg-mt/libavcodec/h264_refs.c', # TODO(fbarchard): Review this file.
                 'source/patched-ffmpeg-mt/libavcodec/h264_sei.c', # TODO(fbarchard): Review this file.
+                'source/patched-ffmpeg-mt/libavcodec/h264dsp.c', # TODO(fbarchard): Roll5 Review this file.
                 'source/patched-ffmpeg-mt/libavcodec/h264idct.c',
                 'source/patched-ffmpeg-mt/libavcodec/h264pred.c',
                 'source/patched-ffmpeg-mt/libavcodec/mpeg4audio.c',
@@ -304,6 +304,9 @@
                 'source/patched-ffmpeg-mt/libavcodec/arm/dsputil_init_armv6.c',
                 'source/patched-ffmpeg-mt/libavcodec/arm/dsputil_init_vfp.c',
                 'source/patched-ffmpeg-mt/libavcodec/arm/dsputil_vfp.S',
+                'source/patched-ffmpeg-mt/libavcodec/arm/h264dsp_init_arm.c', # TODO(fbarchard): Roll5 Review this file.
+                'source/patched-ffmpeg-mt/libavcodec/arm/h264pred_init_arm.c',
+                'source/patched-ffmpeg-mt/libavcodec/rdft.c',
                 'source/patched-ffmpeg-mt/libavcodec/arm/fft_init_arm.c', # TODO(fbarchard): Review this file.
                 'source/patched-ffmpeg-mt/libavcodec/arm/jrevdct_arm.S',
                 'source/patched-ffmpeg-mt/libavcodec/arm/simple_idct_arm.S',
@@ -317,6 +320,7 @@
                     'source/patched-ffmpeg-mt/libavcodec/arm/dsputil_neon.S',
                     'source/patched-ffmpeg-mt/libavcodec/arm/fft_neon.S', # TODO(fbarchard): Review this file.
                     'source/patched-ffmpeg-mt/libavcodec/arm/int_neon.S', # TODO(fbarchard): Review this file.
+                    'source/patched-ffmpeg-mt/libavcodec/arm/rdft_neon.S', # TODO(fbarchard): Roll5 Review this file.
                     'source/patched-ffmpeg-mt/libavcodec/arm/simple_idct_neon.S',
                     'source/patched-ffmpeg-mt/libavcodec/arm/vp3dsp_neon.S', # TODO(fbarchard): Review this file.
                     'source/patched-ffmpeg-mt/libavcodec/arm/mdct_neon.S', # TODO(fbarchard): Review this file.
@@ -326,7 +330,6 @@
             }],  # target_arch=="arm"
             ['target_arch=="arm" and (ffmpeg_branding=="Chrome" or ffmpeg_branding=="ChromeOS")', {
               'sources': [
-                'source/patched-ffmpeg-mt/libavcodec/arm/h264pred_init_arm.c',
                 'source/patched-ffmpeg-mt/libavcodec/arm/mpegvideo_arm.c',
                 'source/patched-ffmpeg-mt/libavcodec/arm/mpegvideo_armv5te.c',
                 'source/patched-ffmpeg-mt/libavcodec/arm/mpegvideo_armv5te_s.S',
@@ -334,6 +337,7 @@
               'conditions': [
                 ['arm_neon==1', {
                   'sources': [
+                    'source/patched-ffmpeg-mt/libavcodec/arm/h264dsp_init_arm.c', # TODO(fbarchard): Roll5 Review this file.
                     'source/patched-ffmpeg-mt/libavcodec/arm/h264dsp_neon.S',
                     'source/patched-ffmpeg-mt/libavcodec/arm/h264idct_neon.S',
                     'source/patched-ffmpeg-mt/libavcodec/arm/h264pred_neon.S',
@@ -597,7 +601,7 @@
         },
       ],
     }],
-  ],
+  ],  # conditions
   'targets': [
     {
       'variables': {
@@ -611,28 +615,10 @@
         ],
         'extra_header': 'ffmpeg_stub_headers.fragment',
       },
+
       'target_name': 'ffmpeg',
       'msvs_guid': 'D7A94F58-576A-45D9-A45F-EB87C63ABBB0',
-      'dependencies': [
-        '<(target_for_binaries)',
-        'ffmpeg_binaries',
-      ],
       'sources': [
-        '<(ffmpeg_include_root)/libavcodec/avcodec.h',
-        '<(ffmpeg_include_root)/libavcodec/opt.h',
-        '<(ffmpeg_include_root)/libavcodec/vdpau.h',
-        '<(ffmpeg_include_root)/libavcodec/xvmc.h',
-        '<(ffmpeg_include_root)/libavformat/avformat.h',
-        '<(ffmpeg_include_root)/libavformat/avio.h',
-        '<(ffmpeg_include_root)/libavutil/avstring.h',
-        '<(ffmpeg_include_root)/libavutil/crc.h',
-        '<(ffmpeg_include_root)/libavutil/intfloat_readwrite.h',
-        '<(ffmpeg_include_root)/libavutil/log.h',
-        '<(ffmpeg_include_root)/libavutil/mathematics.h',
-        '<(ffmpeg_include_root)/libavutil/mem.h',
-        '<(ffmpeg_include_root)/libavutil/pixfmt.h',
-        '<(ffmpeg_include_root)/libavutil/rational.h',
-
         # Hacks to introduce C99 types into Visual Studio.
         'include/win/inttypes.h',
         'include/win/stdint.h',
@@ -642,178 +628,179 @@
         '<(extra_header)'
       ],
       'hard_dependency': 1,
-      'direct_dependent_settings': {
-        'include_dirs': [
-          'source/patched-ffmpeg-mt',
-          'source/config',
-        ],
-      },
-      'conditions': [
-        ['OS=="win"',
-          {
-            'variables': {
-              'outfile_type': 'windows_lib',
-              'output_dir': '<(PRODUCT_DIR)/lib',
-              'intermediate_dir': '<(INTERMEDIATE_DIR)',
-            },
-            'type': 'none',
-            'sources!': [
-              '<(extra_header)',
-            ],
-            'direct_dependent_settings': {
-              'include_dirs': [
-                'include/win',
-              ],
-              'link_settings': {
-                'libraries': [
-                  '<(output_dir)/avcodec-52.lib',
-                  '<(output_dir)/avformat-52.lib',
-                  '<(output_dir)/avutil-50.lib',
-                ],
-                'msvs_settings': {
-                  'VCLinkerTool': {
-                    'DelayLoadDLLs': [
-                      'avcodec-52.dll',
-                      'avformat-52.dll',
-                      'avutil-50.dll',
-                    ],
-                  },
-                },
-              },
-            },
-            'rules': [
-              {
-                'rule_name': 'generate_libs',
-                'extension': 'sigs',
-                'inputs': [
-                  '<(generate_stubs_script)',
-                  '<@(sig_files)',
-                ],
-                'outputs': [
-                  '<(output_dir)/<(RULE_INPUT_ROOT).lib',
-                ],
-                'action': ['python', '<(generate_stubs_script)',
-                           '-i', '<(intermediate_dir)',
-                           '-o', '<(output_dir)',
-                           '-t', '<(outfile_type)',
-                           '<@(RULE_INPUT_PATH)',
-                ],
-                'message': 'Generating FFmpeg import libraries.',
-              },
-            ],
-          }, {  # else OS!="win"
-            'variables': {
-              'outfile_type': 'posix_stubs',
-              'stubs_filename_root': 'ffmpeg_stubs',
-              'project_path': 'third_party/ffmpeg',
-              'intermediate_dir': '<(INTERMEDIATE_DIR)',
-              'output_root': '<(SHARED_INTERMEDIATE_DIR)/ffmpeg',
-            },
-            'type': '<(library)',
-            'include_dirs': [
-              'source/patched-ffmpeg-mt',
-              'source/config',
-              '<(output_root)',
-              '../..',  # The chromium 'src' directory.
-            ],
-            'direct_dependent_settings': {
-              'defines': [
-                '__STDC_CONSTANT_MACROS',  # FFmpeg uses INT64_C.
-              ],
-              'include_dirs': [
-                '<(output_root)',
-                '../..',  # The chromium 'src' directory.
-              ],
-            },
-            'actions': [
-              {
-                'action_name': 'generate_stubs',
-                'inputs': [
-                  '<(generate_stubs_script)',
-                  '<(extra_header)',
-                  '<@(sig_files)',
-                ],
-                'outputs': [
-                  '<(intermediate_dir)/<(stubs_filename_root).cc',
-                  '<(output_root)/<(project_path)/<(stubs_filename_root).h',
-                ],
-                'action': ['python',
-                           '<(generate_stubs_script)',
-                           '-i', '<(intermediate_dir)',
-                           '-o', '<(output_root)/<(project_path)',
-                           '-t', '<(outfile_type)',
-                           '-e', '<(extra_header)',
-                           '-s', '<(stubs_filename_root)',
-                           '-p', '<(project_path)',
-                           '<@(_inputs)',
-                ],
-                'process_outputs_as_sources': 1,
-                'message': 'Generating FFmpeg stubs for dynamic loading.',
-              },
-            ],
-          },
-        ],
-        ['OS=="linux" or OS=="freebsd" or OS=="solaris"', {
-          'link_settings': {
-            'libraries': [
-              # We need dl for dlopen() and friends.
-              '-ldl',
-            ],
-          },
-        }],
-      ],  # conditions
-    },
-    {
-      'target_name': 'ffmpeg_binaries',
-      'type': 'none',
-      'msvs_guid': '4E4070E1-EFD9-4EF1-8634-3960956F6F10',
-      'variables': {
-        'conditions': [
-          [ 'ffmpeg_branding=="Chrome"', {
-            'ffmpeg_bin_dir': 'chrome/<(OS)/<(ffmpeg_variant)',
-          }, {  # else ffmpeg_branding!="Chrome", assume chromium.
-            'ffmpeg_bin_dir': 'chromium/<(OS)/<(ffmpeg_variant)',
-          }],
-        ],
-      },
+
+      # Do not fear the massive conditional blocks!  They do the following:
+      #   1) Use the Window stub generator on Windows
+      #   2) Else, use the POSIX stub generator on non-Windows
+      #     a) Use system includes when use_system_ffmpeg!=0
+      #     b) Else, use our local copy in source/patched-ffmpeg-mt
       'conditions': [
         ['OS=="win"', {
           'variables': {
-            'source_files': [
+            'outfile_type': 'windows_lib',
+            'output_dir': '<(PRODUCT_DIR)/lib',
+            'intermediate_dir': '<(INTERMEDIATE_DIR)',
+            # TODO(scherkus): Change Windows DEPS directory so we don't need
+            # this conditional.
+            'conditions': [
+              [ 'ffmpeg_branding=="Chrome"', {
+                'ffmpeg_bin_dir': 'chrome/<(OS)/<(ffmpeg_variant)',
+              }, {  # else ffmpeg_branding!="Chrome", assume chromium.
+                'ffmpeg_bin_dir': 'chromium/<(OS)/<(ffmpeg_variant)',
+              }],
+            ],
+          },
+          'type': 'none',
+          'sources!': [
+            '<(extra_header)',
+          ],
+          'direct_dependent_settings': {
+            'include_dirs': [
+              'include/win',
+              'source/config',
+              'source/patched-ffmpeg-mt',
+            ],
+            'link_settings': {
+              'libraries': [
+                '<(output_dir)/avcodec-52.lib',
+                '<(output_dir)/avformat-52.lib',
+                '<(output_dir)/avutil-50.lib',
+              ],
+              'msvs_settings': {
+                'VCLinkerTool': {
+                  'DelayLoadDLLs': [
+                    'avcodec-52.dll',
+                    'avformat-52.dll',
+                    'avutil-50.dll',
+                  ],
+                },
+              },
+            },
+          },
+          'rules': [
+            {
+              'rule_name': 'generate_libs',
+              'extension': 'sigs',
+              'inputs': [
+                '<(generate_stubs_script)',
+                '<@(sig_files)',
+              ],
+              'outputs': [
+                '<(output_dir)/<(RULE_INPUT_ROOT).lib',
+              ],
+              'action': ['python', '<(generate_stubs_script)',
+                         '-i', '<(intermediate_dir)',
+                         '-o', '<(output_dir)',
+                         '-t', '<(outfile_type)',
+                         '<@(RULE_INPUT_PATH)',
+              ],
+              'message': 'Generating FFmpeg import libraries.',
+            },
+          ],
+
+          # Copy prebuilt binaries to build directory.
+          'dependencies': ['../../build/win/system.gyp:cygwin'],
+          'copies': [{
+            'destination': '<(PRODUCT_DIR)/',
+            'files': [
               'binaries/<(ffmpeg_bin_dir)/avcodec-52.dll',
               'binaries/<(ffmpeg_bin_dir)/avformat-52.dll',
               'binaries/<(ffmpeg_bin_dir)/avutil-50.dll',
             ],
+          }],
+        }, {  # else OS!="win", use POSIX stub generator
+          'variables': {
+            'outfile_type': 'posix_stubs',
+            'stubs_filename_root': 'ffmpeg_stubs',
+            'project_path': 'third_party/ffmpeg',
+            'intermediate_dir': '<(INTERMEDIATE_DIR)',
+            'output_root': '<(SHARED_INTERMEDIATE_DIR)/ffmpeg',
           },
-          'dependencies': ['../../build/win/system.gyp:cygwin'],
-        }], ['OS=="linux" or OS=="freebsd" or OS=="openbsd" or OS=="solaris"', {
-              'variables': {
-                # TODO(ajwong): Clean this up after we've finished
-                # migrating to in-tree build.
-                'source_files': [
+          'type': '<(library)',
+          'include_dirs': [
+            '<(output_root)',
+            '../..',  # The chromium 'src' directory.
+          ],
+          'direct_dependent_settings': {
+            'defines': [
+              '__STDC_CONSTANT_MACROS',  # FFmpeg uses INT64_C.
+            ],
+            'include_dirs': [
+              '<(output_root)',
+              '../..',  # The chromium 'src' directory.
+            ],
+          },
+          'actions': [
+            {
+              'action_name': 'generate_stubs',
+              'inputs': [
+                '<(generate_stubs_script)',
+                '<(extra_header)',
+                '<@(sig_files)',
+              ],
+              'outputs': [
+                '<(intermediate_dir)/<(stubs_filename_root).cc',
+                '<(output_root)/<(project_path)/<(stubs_filename_root).h',
+              ],
+              'action': ['python',
+                         '<(generate_stubs_script)',
+                         '-i', '<(intermediate_dir)',
+                         '-o', '<(output_root)/<(project_path)',
+                         '-t', '<(outfile_type)',
+                         '-e', '<(extra_header)',
+                         '-s', '<(stubs_filename_root)',
+                         '-p', '<(project_path)',
+                         '<@(_inputs)',
+              ],
+              'process_outputs_as_sources': 1,
+              'message': 'Generating FFmpeg stubs for dynamic loading.',
+            },
+          ],
+
+          'conditions': [
+            # Non-Mac platforms need libdl for dlopen() and friends.
+            ['OS!="mac"', {
+              'link_settings': {
+                'libraries': [
+                  '-ldl',
                 ],
               },
-        }], ['OS=="mac"', {
-              # TODO(ajwong): These files are also copied in:
-              # webkit/tools/test_shell/test_shell.gypi and
-              # chrome/chrome.gyp
-              # Need to consolidate the copies in one place. (BUG=23602)
-              'variables': {
-                'source_files': [
+            }],
+
+            # Add pkg-config result to include path when use_system_ffmpeg!=0
+            ['use_system_ffmpeg!=0', {
+              'cflags': [
+                '<!@(pkg-config --cflags libavcodec libavformat libavutil)',
+              ],
+              'direct_dependent_settings': {
+                'cflags': [
+                  '<!@(pkg-config --cflags libavcodec libavformat libavutil)',
                 ],
               },
+            }, {  # else use_system_ffmpeg==0, add local copy to include path
+              'include_dirs': [
+                'source/config',
+                'source/patched-ffmpeg-mt',
+              ],
+              'direct_dependent_settings': {
+                'include_dirs': [
+                  'source/config',
+                  'source/patched-ffmpeg-mt',
+                ],
+              },
+              'conditions': [
+                ['build_ffmpegsumo!=0', {
+                  'dependencies': [
+                    'ffmpegsumo_nolink',
+                  ],
+                }],
+              ],
+            }],
+          ],  # conditions
         }],
-      ],
-      'copies': [
-        {
-          'destination': '<(PRODUCT_DIR)/',
-          'files': [
-            '<@(source_files)',
-          ]
-        },
-      ],
+      ],  # conditions
     },
-  ],
+  ],  # targets
 }
 
 # Local Variables:
