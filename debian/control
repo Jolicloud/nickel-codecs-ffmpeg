@@ -10,7 +10,7 @@ Build-Depends: cdbs,
 	lsb-release,
 	zlib1g-dev,
 	libvpx-dev,
-	gyp,
+	gyp (>= 0.1~svn837),
 	yasm (>= 0.7)
 Standards-Version: 3.8.3
 

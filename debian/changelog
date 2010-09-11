@@ -1,5 +1,15 @@
-chromium-codecs-ffmpeg (0.6+svn20100811r55740+56137-0ubuntu1~ucd1~jaunty) jaunty; urgency=low
+chromium-codecs-ffmpeg (0.6+svn20100904r58574+58998-0ubuntu1~ucd2~lucid) lucid; urgency=low
 
+  * Disable arm_neon to fix a FTBFS in libavcodec on Armel. Also enable
+    arm_thumb on all versions of Ubuntu and extend armv7 to Maverick (needed
+    when it loses its "development" name)
+    - update debian/rules
+
+ -- Fabien Tassin <fta@ubuntu.com>  Sat, 11 Sep 2010 04:15:16 +0200
+
+chromium-codecs-ffmpeg (0.6+svn20100811r55740+56137-0ubuntu1) maverick; urgency=low
+
+  * New upstream snapshot (LP: #628924)
   * Drop the sse2 patch, it has been applied upstream, and set disable_sse2
     - drop debian/patches/*
     - update debian/rules
@@ -16,6 +26,8 @@ chromium-codecs-ffmpeg (0.6+svn20100811r55740+56137-0ubuntu1~ucd1~jaunty) jaunty
   * FTBFS when an upstream patch fails to apply, as it could lead to weird
     situations
     - update debian/rules
+  * Bump build-deps for gyp to >= 0.1~svn837
+    - update debian/control
 
  -- Fabien Tassin <fta@ubuntu.com>  Sun, 15 Aug 2010 04:00:02 +0200
 
