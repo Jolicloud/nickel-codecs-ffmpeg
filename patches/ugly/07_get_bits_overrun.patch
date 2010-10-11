@@ -1,6 +1,6 @@
 diff -rpu -N orig/libavcodec/get_bits.h ffmpeg-mt/libavcodec/get_bits.h
---- orig/libavcodec/get_bits.h	2010-07-27 13:08:01.660940600 -0700
-+++ ffmpeg-mt/libavcodec/get_bits.h	2010-07-27 13:08:04.018176300 -0700
+--- orig/libavcodec/get_bits.h	2010-08-11 14:22:49.144270600 -0700
++++ ffmpeg-mt/libavcodec/get_bits.h	2010-08-11 14:22:50.934449600 -0700
 @@ -53,13 +53,21 @@
  /* buffer, buffer_end and size_in_bits must be present and used by every reader */
  typedef struct GetBitContext {

@@ -1,7 +1,7 @@
 diff -rpu -N orig/libavcodec/Makefile ffmpeg-mt/libavcodec/Makefile
---- orig/libavcodec/Makefile	2010-07-27 13:07:28.079582800 -0700
-+++ ffmpeg-mt/libavcodec/Makefile	2010-07-27 13:07:29.930767900 -0700
-@@ -609,6 +609,9 @@ OBJS-$(CONFIG_MP3_HEADER_DECOMPRESS_BSF)
+--- orig/libavcodec/Makefile	2010-08-11 14:22:33.678724200 -0700
++++ ffmpeg-mt/libavcodec/Makefile	2010-08-11 14:22:35.355891900 -0700
+@@ -612,6 +612,9 @@ OBJS-$(CONFIG_MP3_HEADER_DECOMPRESS_BSF)
  OBJS-$(CONFIG_NOISE_BSF)                  += noise_bsf.o
  OBJS-$(CONFIG_REMOVE_EXTRADATA_BSF)       += remove_extradata_bsf.o
  OBJS-$(CONFIG_TEXT2MOVSUB_BSF)            += movsub_bsf.o
@@ -12,9 +12,9 @@ diff -rpu -N orig/libavcodec/Makefile ffmpeg-mt/libavcodec/Makefile
  # thread libraries
  OBJS-$(HAVE_PTHREADS)                  += pthread.o
 diff -rpu -N orig/libavcodec/allcodecs.c ffmpeg-mt/libavcodec/allcodecs.c
---- orig/libavcodec/allcodecs.c	2010-07-27 13:07:27.334508300 -0700
-+++ ffmpeg-mt/libavcodec/allcodecs.c	2010-07-27 13:07:29.935768400 -0700
-@@ -406,5 +406,7 @@ void avcodec_register_all(void)
+--- orig/libavcodec/allcodecs.c	2010-08-11 14:22:33.344690800 -0700
++++ ffmpeg-mt/libavcodec/allcodecs.c	2010-08-11 14:22:35.362892600 -0700
+@@ -408,5 +408,7 @@ void avcodec_register_all(void)
      REGISTER_BSF     (NOISE, noise);
      REGISTER_BSF     (REMOVE_EXTRADATA, remove_extradata);
      REGISTER_BSF     (TEXT2MOVSUB, text2movsub);
@@ -24,7 +24,7 @@ diff -rpu -N orig/libavcodec/allcodecs.c ffmpeg-mt/libavcodec/allcodecs.c
  
 diff -rpu -N orig/libavcodec/vc1_asftoannexg_bsf.c ffmpeg-mt/libavcodec/vc1_asftoannexg_bsf.c
 --- orig/libavcodec/vc1_asftoannexg_bsf.c	1969-12-31 16:00:00.000000000 -0800
-+++ ffmpeg-mt/libavcodec/vc1_asftoannexg_bsf.c	2010-07-27 13:07:29.944769300 -0700
++++ ffmpeg-mt/libavcodec/vc1_asftoannexg_bsf.c	2010-08-11 14:22:35.371893500 -0700
 @@ -0,0 +1,182 @@
 +/*
 + * copyright (c) 2010 Google Inc.
@@ -210,7 +210,7 @@ diff -rpu -N orig/libavcodec/vc1_asftoannexg_bsf.c ffmpeg-mt/libavcodec/vc1_asft
 +};
 diff -rpu -N orig/libavcodec/vc1_asftorcv_bsf.c ffmpeg-mt/libavcodec/vc1_asftorcv_bsf.c
 --- orig/libavcodec/vc1_asftorcv_bsf.c	1969-12-31 16:00:00.000000000 -0800
-+++ ffmpeg-mt/libavcodec/vc1_asftorcv_bsf.c	2010-07-27 13:07:29.950769900 -0700
++++ ffmpeg-mt/libavcodec/vc1_asftorcv_bsf.c	2010-08-11 14:22:35.401896500 -0700
 @@ -0,0 +1,88 @@
 +/*
 + * copyright (c) 2010 Google Inc.

@@ -1,6 +1,6 @@
 diff -rpu -N orig/libavcodec/aacdec.c ffmpeg-mt/libavcodec/aacdec.c
---- orig/libavcodec/aacdec.c	2010-07-27 13:08:19.390713400 -0700
-+++ ffmpeg-mt/libavcodec/aacdec.c	2010-07-27 13:08:22.393013600 -0700
+--- orig/libavcodec/aacdec.c	2010-08-11 14:23:04.537809800 -0700
++++ ffmpeg-mt/libavcodec/aacdec.c	2010-08-11 14:23:06.572013200 -0700
 @@ -466,6 +466,7 @@ static int decode_audio_specific_config(
      int i;
  
@@ -9,7 +9,7 @@ diff -rpu -N orig/libavcodec/aacdec.c ffmpeg-mt/libavcodec/aacdec.c
  
      if ((i = ff_mpeg4audio_get_config(&ac->m4ac, data, data_size)) < 0)
          return -1;
-@@ -1946,6 +1947,7 @@ static int aac_decode_frame(AVCodecConte
+@@ -1952,6 +1953,7 @@ static int aac_decode_frame(AVCodecConte
      int buf_offset;
  
      init_get_bits(&gb, buf, buf_size * 8);
@@ -17,7 +17,7 @@ diff -rpu -N orig/libavcodec/aacdec.c ffmpeg-mt/libavcodec/aacdec.c
  
      if (show_bits(&gb, 12) == 0xfff) {
          if (parse_adts_frame_header(ac, &gb) < 0) {
-@@ -1961,6 +1963,12 @@ static int aac_decode_frame(AVCodecConte
+@@ -1967,6 +1969,12 @@ static int aac_decode_frame(AVCodecConte
      memset(ac->tags_seen_this_frame, 0, sizeof(ac->tags_seen_this_frame));
      // parse
      while ((elem_type = get_bits(&gb, 3)) != TYPE_END) {

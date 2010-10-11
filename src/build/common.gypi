@@ -91,13 +91,6 @@
       # building on.
       'target_arch%': '<(host_arch)',
 
-      # We do want to build Chromium with Breakpad support in certain
-      # situations. I.e. for Chrome bot.
-      'linux_chromium_breakpad%': 0,
-      # And if we want to dump symbols.
-      'linux_chromium_dump_symbols%': 0,
-      # Also see linux_strip_binary below.
-
       # Copy conditionally-set chromeos and touchui variables out one scope.
       'chromeos%': '<(chromeos)',
       'touchui%': '<(touchui)',
@@ -247,7 +240,11 @@
     # Set this to true to enable SELinux support.
     'selinux%': 0,
 
-    # Strip the binary after dumping symbols.
+    # Override whether we should use Breakpad on Linux. I.e. for Chrome bot.
+    'linux_breakpad%': 0,
+    # And if we want to dump symbols for Breakpad-enabled builds.
+    'linux_dump_symbols%': 0,
+    # And if we want to strip the binary after dumping symbols.
     'linux_strip_binary%': 0,
 
     # Enable TCMalloc.
@@ -258,6 +255,10 @@
 
     # Disable TCMalloc's heapchecker.
     'linux_use_heapchecker%': 0,
+
+    # Disable shadow stack keeping used by heapcheck to unwind the stacks
+    # better.
+    'linux_keep_shadow_stacks%': 0,
 
     # Set to 1 to turn on seccomp sandbox by default.
     # (Note: this is ignored for official builds.)
@@ -298,21 +299,13 @@
         # Figure out the python architecture to decide if we build pyauto.
         'python_arch%': '<!(<(DEPTH)/build/linux/python_arch.sh <(sysroot)/usr/lib/libpython<(python_ver).so.1.0)',
         'conditions': [
-          ['branding=="Chrome" or linux_chromium_breakpad==1', {
+          ['branding=="Chrome"', {
             'linux_breakpad%': 1,
-          }, {
-            'linux_breakpad%': 0,
           }],
           # All Chrome builds have breakpad symbols, but only process the
           # symbols from official builds.
-          # TODO(mmoss) dump_syms segfaults on x64. Enable once dump_syms and
-          # crash server handle 64-bit symbols.
-          ['linux_chromium_dump_symbols==1 or '
-           '(branding=="Chrome" and buildtype=="Official" and '
-           'target_arch=="ia32")', {
+          ['(branding=="Chrome" and buildtype=="Official")', {
             'linux_dump_symbols%': 1,
-          }, {
-            'linux_dump_symbols%': 0,
           }],
           ['toolkit_views==0', {
             # GTK wants Title Case strings
@@ -355,7 +348,6 @@
           ['component=="shared_library"', {
             'win_use_allocator_shim%': 0,
           }],
-        
           ['MSVS_VERSION=="2005"', {
             'msvs_multi_core_compile%': 0,
           },{
@@ -380,7 +372,7 @@
     # so Cocoa is happy (http://crbug.com/20441).
     'locales': [
       'am', 'ar', 'bg', 'bn', 'ca', 'cs', 'da', 'de', 'el', 'en-GB',
-      'en-US', 'es-419', 'es', 'et', 'fi', 'fil', 'fr', 'gu', 'he',
+      'en-US', 'es-419', 'es', 'et', 'fa', 'fi', 'fil', 'fr', 'gu', 'he',
       'hi', 'hr', 'hu', 'id', 'it', 'ja', 'kn', 'ko', 'lt', 'lv',
       'ml', 'mr', 'nb', 'nl', 'pl', 'pt-BR', 'pt-PT', 'ro', 'ru',
       'sk', 'sl', 'sr', 'sv', 'sw', 'ta', 'te', 'th', 'tr', 'uk',
@@ -527,6 +519,16 @@
          }],  # OS==win
         ],  # conditions for coverage
       }],  # coverage!=0
+      ['OS=="win"', {
+        'defines': [
+          '__STD_C',
+          '_CRT_SECURE_NO_DEPRECATE',
+          '_SCL_SECURE_NO_DEPRECATE',
+        ],
+        'include_dirs': [
+          '<(DEPTH)/third_party/wtl/include',
+        ],
+      }],  # OS==win
     ],  # conditions for 'target_defaults'
     'target_conditions': [
       ['chromium_code==0', {
@@ -922,11 +924,6 @@
             'cflags': [
               '-O>(debug_optimize)',
               '-g',
-              # One can use '-gstabs' to enable building the debugging
-              # information in STABS format for breakpad's dumpsyms.
-            ],
-            'ldflags': [
-              '-rdynamic',  # Allows backtrace to resolve symbols.
             ],
           },
           'Release_Base': {
@@ -1109,7 +1106,7 @@
             ],
           }],
           ['linux_breakpad==1', {
-            'cflags': [ '-gstabs' ],
+            'cflags': [ '-g' ],
             'defines': ['USE_LINUX_BREAKPAD'],
           }],
           ['linux_use_seccomp_sandbox==1 and buildtype!="Official"', {
@@ -1135,6 +1132,10 @@
           ['linux_use_heapchecker==0', {
             'defines': ['NO_HEAPCHECKER'],
           }],
+          ['linux_keep_shadow_stacks==1', {
+            'defines': ['KEEP_SHADOW_STACKS'],
+            'cflags': ['-finstrument-functions'],
+          }],
         ],
       },
     }],
@@ -1154,9 +1155,10 @@
     ['OS=="mac"', {
       'target_defaults': {
         'variables': {
-          # This should be 'mac_real_dsym%', but there seems to be a bug
-          # with % in variables that are intended to be set to different
-          # values in different targets, like this one.
+          # These should be 'mac_real_dsym%' and 'mac_strip%', but there
+          # seems to be a bug with % in variables that are intended to be
+          # set to different values in different targets, like these two.
+          'mac_strip': 1,      # Strip debugging symbols from the target.
           'mac_real_dsym': 0,  # Fake .dSYMs are fine in most cases.
         },
         'mac_bundle': 0,
@@ -1204,7 +1206,8 @@
           ['_mac_bundle', {
             'xcode_settings': {'OTHER_LDFLAGS': ['-Wl,-ObjC']},
           }],
-          ['_type=="executable" or _type=="shared_library" or _type=="loadable_module"', {
+          ['(_type=="executable" or _type=="shared_library" or \
+             _type=="loadable_module") and mac_strip!=0', {
             'target_conditions': [
               ['mac_real_dsym == 1', {
                 # To get a real .dSYM bundle produced by dsymutil, set the
@@ -1248,7 +1251,8 @@
                 ],  # postbuilds
               }],  # mac_real_dsym
             ],  # target_conditions
-          }],  # _type=="executable" or _type=="shared_library" or _type=="loadable_module"
+          }],  # (_type=="executable" or _type=="shared_library" or
+               #  _type=="loadable_module") and mac_strip!=0
         ],  # target_conditions
       },  # target_defaults
     }],  # OS=="mac"
@@ -1274,7 +1278,6 @@
             ],
           }],
         ],
-        
         'msvs_system_include_dirs': [
           '<(DEPTH)/third_party/platformsdk_win7/files/Include',
           '<(DEPTH)/third_party/directxsdk/files/Include',
@@ -1295,7 +1298,6 @@
               [ 'msvs_multi_core_compile', {
                 'AdditionalOptions': ['/MP'],
               }],
-              
               ['component=="shared_library"', {
                 'ExceptionHandling': '1',  # /EHsc
               }, {

@@ -1,6 +1,6 @@
 diff -rpu -N orig/libavformat/oggdec.c ffmpeg-mt/libavformat/oggdec.c
---- orig/libavformat/oggdec.c	2010-07-28 15:25:20.964333700 -0700
-+++ ffmpeg-mt/libavformat/oggdec.c	2010-07-28 15:25:22.024439700 -0700
+--- orig/libavformat/oggdec.c	2010-08-11 14:23:16.459001800 -0700
++++ ffmpeg-mt/libavformat/oggdec.c	2010-08-11 14:23:17.510106900 -0700
 @@ -596,6 +596,8 @@ ogg_read_timestamp (AVFormatContext * s,
      ByteIOContext *bc = s->pb;
      int64_t pts = AV_NOPTS_VALUE;
