@@ -3,24 +3,17 @@ Chromium.
 
 The FFmpeg source is from Alexander Strange's ffmpeg-mt branch:
   git://gitorious.org/~astrange/ffmpeg/ffmpeg-mt.git
-
-  Date: Monday July 18 2010
-  Commit: 82324906156d303d5f3b3e10a1855bf05614ebfc
-  This corresponds to 24286 in the mainline ffmpeg repository.
-
-The libswscale source is from the public libswscale repository:
-  git://git.ffmpeg.org/libswscale
-  Date: Monday July 19 2010
-  Commit: 5f2022a328eb5fef40f57e35e96cb35c4decd2d6
+  Date: Wednesday Aug 11 2010
+  Commit: 9e981c8d263986e67de6170895125b1de7e62ddd
+  This corresponds to r24746 in the mainline ffmpeg repository.
 
 libvpx source
-  git://review.webmproject.org/libvpx.git
-  Commit: e4fe866949951c8eb79c5ebdb0a6dab37cef37a9
-  Version is v0.9.1-84-ge4fe866
-  Date: Monday Aug 11 2010
+  http://webm.googlecode.com/files/libvpx-0.9.2.zip
+  Version is v0.9.2
+  Date: Friday Sept 03 2010
 
 The static_pthread_O2.patch does two things.  First, it uses -O2 instead of
--O3 to build ffmpeg, improving size and performance on Pentium4 and Core.
+-O3 to build ffmpeg, improving size and performance on Atom, Pentium4 and Core.
 Second, the patch adds a modification that statically links pthreadGC2
 into avcodec-52.dll on an MSYS/MinGW build in Windows.  This reduces the
 number of DLLs required for distribution, and lowers the total size of the
@@ -33,7 +26,7 @@ Steps for extracting:
        tar xf ffmpeg-mt.tar.gz
 #  2) Extract libswscale in place:
        cd ffmpeg-mt
-       tar xf ../libswscale.tar.gz
+#       tar xf ../libswscale.tar.gz
 #  3) Apply patches:
        patch -p1 --no-backup-if-mismatch < ../patches/to_upstream/01_static_pthread_O2.patch
        patch -p1 --no-backup-if-mismatch < ../patches/to_upstream/02_mov_dref_looping.patch
@@ -47,7 +40,7 @@ Steps for extracting:
        patch -p1 --no-backup-if-mismatch < ../patches/ugly/10_aac_oob_read.patch
        patch -p1 --no-backup-if-mismatch < ../patches/to_upstream/11_mkv_buffer_overflow.patch
        patch -p1 --no-backup-if-mismatch < ../patches/to_upstream/12_ogg_seek_to_zero.patch
-       patch -p1 --no-backup-if-mismatch < ../patches/to_upstream/13_libvpx_check_decoder_only.patch
+       patch -p1 --no-backup-if-mismatch < ../patches/ugly/13_remove_avcore.patch
        cd ..
        
 There is also a script "make_src_tree.sh" that automates most of the steps
@@ -62,43 +55,29 @@ building the absolute minimum.
 Example configure flags suitable for Chromium (WebM and Ogg),
 which will build and install to the directory ./chromium-ffmpeg:
 
-   ./configure --disable-everything --disable-decoders --disable-protocols     \
-               --disable-parsers --disable-avfilter --disable-avdevice         \
-               --disable-ffmpeg --disable-ffplay                               \
-               --disable-ffprobe --enable-shared --disable-static              \
-	       --disable-debug --disable-network --disable-gpl --disable-bzlib \
-	       --disable-zlib --enable-decoder=vp3 --enable-decoder=vorbis     \
-	       --enable-demuxer=ogg --enable-pthreads --enable-yasm            \
-	       --enable-memalign-hack --cc=gcc-sjlj --prefix=./chromium-ffmpeg \
-	       --enable-libvpx --enable-decoder=libvpx                         \
-	       --enable-demuxer=matroska                                       \
-	       --extra-cflags='-I../../usr/local/include' --disable-decoders
+   ./configure --disable-everything --disable-network --disable-swscale        \
+               --enable-shared --enable-libvpx                                 \
+	       --enable-decoder=theora,vorbis,libvpx                           \
+	       --enable-demuxer=ogg,matroska --enable-memalign-hack            \
+	       --cc=gcc-sjlj
 
 The following flags are used for Google Chrome, which also include non-free
 decoders (H.264, AAC and MP3):
 
-   ./configure --disable-everything --disable-decoders --disable-protocols     \
-               --disable-parsers --disable-avfilter --disable-avdevice         \
-               --disable-ffmpeg --disable-ffplay                               \
-               --disable-ffprobe --enable-shared --disable-static              \
-	       --disable-debug --disable-network --disable-gpl --disable-bzlib \
-	       --disable-zlib --enable-decoder=vp3 --enable-decoder=vorbis     \
-	       --enable-demuxer=ogg --enable-decoder=aac --enable-decoder=h264 \
-	       --enable-decoder=mp3 --enable-demuxer=mp3 --enable-demuxer=mov  \
-	       --enable-parser=mpegaudio --enable-pthreads --enable-yasm       \
-	       --enable-memalign-hack --cc=gcc-sjlj --prefix=./chrome-ffmpeg   \
-	       --enable-libvpx --enable-decoder=libvpx                         \
-	       -enable-demuxer=matroska                                        \
-	       --extra-cflags='-I../../usr/local/include'
-
-If building on Windows with Chromium's MinGW/MSYS environment, add the following:
-              --enable-memalign-hack --cc=gcc-sjlj
+   ./configure --disable-everything --disable-network --disable-swscale        \
+               --enable-shared --enable-libvpx                                 \
+	       --enable-decoder=theora,vorbis,libvpx,aac,h264,mp3              \
+	       --enable-demuxer=ogg,matroska,mp3,mov --enable-parser=mpegaudio \
+	       --enable-bsf=h264_mp4toannexb --enable-memalign-hack            \
+	       --cc=gcc-sjlj
 
 To build:
   make
 
 To install:
   make install
+
+libvpx must be installed.  On Windows, add CFLAGS='-I/usr/local/include'
 
 On Windows, run editbin.exe on the resulting DLLs to enable additional security
 features:
@@ -125,9 +104,9 @@ To clean up patches so there is no fuzzing
        rm -rf ffmpeg-mt
        tar xf ffmpeg-mt.tar.gz
 #  2) Extract libswscale in place:
-       cd ffmpeg-mt
-       tar xf ../libswscale.tar.gz
-       cd ..
+#       cd ffmpeg-mt
+#       tar xf ../libswscale.tar.gz
+#       cd ..
        
 #  3) Apply patches:
        rm -rf orig
@@ -225,15 +204,14 @@ To clean up patches so there is no fuzzing
        cd ..
        diff -rpu -N orig ffmpeg-mt
        diff -rpu -N orig ffmpeg-mt >patches/to_upstream/12_ogg_seek_to_zero.patch
-
+      
        rm -rf orig
        cp -R ffmpeg-mt orig
        cd ffmpeg-mt
-       patch -p1 --no-backup-if-mismatch < ../patches/to_upstream/13_libvpx_check_decoder_only.patch
+       patch -p1 --no-backup-if-mismatch < ../patches/ugly/13_remove_avcore.patch
        cd ..
        diff -rpu -N orig ffmpeg-mt
-       diff -rpu -N orig ffmpeg-mt >patches/to_upstream/13_libvpx_check_decoder_only.patch
-
+       diff -rpu -N orig ffmpeg-mt >patches/ugly/13_remove_avcore.patch
       
 Testing
   Updates should be tested against

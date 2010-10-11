@@ -1,7 +1,7 @@
 diff -rpu -N orig/libavcodec/vorbis_dec.c ffmpeg-mt/libavcodec/vorbis_dec.c
---- orig/libavcodec/vorbis_dec.c	2010-07-27 13:08:13.864160800 -0700
-+++ ffmpeg-mt/libavcodec/vorbis_dec.c	2010-07-27 13:08:16.246399000 -0700
-@@ -972,6 +972,7 @@ static av_cold int vorbis_decode_init(AV
+--- orig/libavcodec/vorbis_dec.c	2010-08-11 14:23:00.111367200 -0700
++++ ffmpeg-mt/libavcodec/vorbis_dec.c	2010-08-11 14:23:01.634519500 -0700
+@@ -974,6 +974,7 @@ static av_cold int vorbis_decode_init(AV
      }
  
      init_get_bits(gb, header_start[0], header_len[0]*8);
@@ -9,7 +9,7 @@ diff -rpu -N orig/libavcodec/vorbis_dec.c ffmpeg-mt/libavcodec/vorbis_dec.c
      hdr_type = get_bits(gb, 8);
      if (hdr_type != 1) {
          av_log(avccontext, AV_LOG_ERROR, "First header is not the id header.\n");
-@@ -984,6 +985,7 @@ static av_cold int vorbis_decode_init(AV
+@@ -986,6 +987,7 @@ static av_cold int vorbis_decode_init(AV
      }
  
      init_get_bits(gb, header_start[2], header_len[2]*8);
@@ -17,7 +17,7 @@ diff -rpu -N orig/libavcodec/vorbis_dec.c ffmpeg-mt/libavcodec/vorbis_dec.c
      hdr_type = get_bits(gb, 8);
      if (hdr_type != 5) {
          av_log(avccontext, AV_LOG_ERROR, "Third header is not the setup header.\n");
-@@ -1205,7 +1207,7 @@ static uint_fast8_t vorbis_floor1_decode
+@@ -1207,7 +1209,7 @@ static uint_fast8_t vorbis_floor1_decode
          adx = vf->list[high_neigh_offs].x - vf->list[low_neigh_offs].x;
          ady = FFABS(dy);
          err = ady * (vf->list[i].x - vf->list[low_neigh_offs].x);
@@ -26,7 +26,7 @@ diff -rpu -N orig/libavcodec/vorbis_dec.c ffmpeg-mt/libavcodec/vorbis_dec.c
          if (dy < 0) {
              predicted = floor1_Y_final[low_neigh_offs] - off;
          } else {
-@@ -1291,7 +1293,7 @@ static av_always_inline int vorbis_resid
+@@ -1293,7 +1295,7 @@ static av_always_inline int vorbis_resid
          uint_fast16_t j_times_ptns_to_read;
  
          voffset = vr->begin;
@@ -35,7 +35,7 @@ diff -rpu -N orig/libavcodec/vorbis_dec.c ffmpeg-mt/libavcodec/vorbis_dec.c
              if (!pass) {
                  uint_fast32_t inverse_class = ff_inverse[vr->classifications];
                  for (j_times_ptns_to_read = 0, j = 0; j < ch_used; ++j) {
-@@ -1611,6 +1613,7 @@ static int vorbis_decode_frame(AVCodecCo
+@@ -1613,6 +1615,7 @@ static int vorbis_decode_frame(AVCodecCo
      AV_DEBUG("packet length %d \n", buf_size);
  
      init_get_bits(gb, buf, buf_size*8);

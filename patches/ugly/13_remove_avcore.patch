@@ -1,0 +1,23 @@
+diff -rpu -N orig/libavcodec/Makefile ffmpeg-mt/libavcodec/Makefile
+--- orig/libavcodec/Makefile	2010-08-17 09:19:42.159858300 -0700
++++ ffmpeg-mt/libavcodec/Makefile	2010-08-17 09:20:14.390858300 -0700
+@@ -1,7 +1,9 @@
+ include $(SUBDIR)../config.mak
+ 
+ NAME = avcodec
+-FFLIBS = avutil avcore
++FFLIBS = avutil
++# removing avcore dependency to avoid adding dll to installer/loader.
++#FFLIBS = avutil avcore
+ 
+ HEADERS = avcodec.h avfft.h dxva2.h opt.h vaapi.h vdpau.h xvmc.h
+ 
+@@ -22,6 +24,8 @@ OBJS = allcodecs.o
+        resample2.o                                                      \
+        simple_idct.o                                                    \
+        utils.o                                                          \
++       ../libavcore/imgutils.o                                          \
++       ../libavcore/parseutils.o
+ 
+ # parts needed for many different codecs
+ OBJS-$(CONFIG_AANDCT)                  += aandcttab.o

@@ -1,7 +1,7 @@
 diff -rpu -N orig/libavcodec/Makefile ffmpeg-mt/libavcodec/Makefile
---- orig/libavcodec/Makefile	2010-07-27 13:06:29.725748000 -0700
-+++ ffmpeg-mt/libavcodec/Makefile	2010-07-27 13:06:34.275202900 -0700
-@@ -592,6 +592,14 @@ OBJS-$(CONFIG_AAC_ADTSTOASC_BSF)
+--- orig/libavcodec/Makefile	2010-08-11 14:22:27.770133400 -0700
++++ ffmpeg-mt/libavcodec/Makefile	2010-08-11 14:22:29.550311400 -0700
+@@ -595,6 +595,14 @@ OBJS-$(CONFIG_AAC_ADTSTOASC_BSF)
  OBJS-$(CONFIG_CHOMP_BSF)                  += chomp_bsf.o
  OBJS-$(CONFIG_DUMP_EXTRADATA_BSF)         += dump_extradata_bsf.o
  OBJS-$(CONFIG_H264_MP4TOANNEXB_BSF)       += h264_mp4toannexb_bsf.o
@@ -17,9 +17,9 @@ diff -rpu -N orig/libavcodec/Makefile ffmpeg-mt/libavcodec/Makefile
  OBJS-$(CONFIG_MJPEGA_DUMP_HEADER_BSF)     += mjpega_dump_header_bsf.o
  OBJS-$(CONFIG_MOV2TEXTSUB_BSF)            += movsub_bsf.o
 diff -rpu -N orig/libavcodec/allcodecs.c ffmpeg-mt/libavcodec/allcodecs.c
---- orig/libavcodec/allcodecs.c	2010-07-27 13:06:29.136689100 -0700
-+++ ffmpeg-mt/libavcodec/allcodecs.c	2010-07-27 13:06:34.279203300 -0700
-@@ -397,6 +397,7 @@ void avcodec_register_all(void)
+--- orig/libavcodec/allcodecs.c	2010-08-11 14:22:27.440100400 -0700
++++ ffmpeg-mt/libavcodec/allcodecs.c	2010-08-11 14:22:29.558312200 -0700
+@@ -399,6 +399,7 @@ void avcodec_register_all(void)
      REGISTER_BSF     (CHOMP, chomp);
      REGISTER_BSF     (DUMP_EXTRADATA, dump_extradata);
      REGISTER_BSF     (H264_MP4TOANNEXB, h264_mp4toannexb);
@@ -28,8 +28,8 @@ diff -rpu -N orig/libavcodec/allcodecs.c ffmpeg-mt/libavcodec/allcodecs.c
      REGISTER_BSF     (MJPEGA_DUMP_HEADER, mjpega_dump_header);
      REGISTER_BSF     (MP3_HEADER_COMPRESS, mp3_header_compress);
 diff -rpu -N orig/libavcodec/mpeg4video.h ffmpeg-mt/libavcodec/mpeg4video.h
---- orig/libavcodec/mpeg4video.h	2010-07-27 13:06:29.877763200 -0700
-+++ ffmpeg-mt/libavcodec/mpeg4video.h	2010-07-27 13:06:34.283203700 -0700
+--- orig/libavcodec/mpeg4video.h	2010-08-11 14:22:27.826139000 -0700
++++ ffmpeg-mt/libavcodec/mpeg4video.h	2010-08-11 14:22:29.563312700 -0700
 @@ -91,6 +91,9 @@ void mpeg4_encode_mb(MpegEncContext *s,
  void mpeg4_pred_ac(MpegEncContext * s, DCTELEM *block, int n,
                     int dir);
@@ -42,7 +42,7 @@ diff -rpu -N orig/libavcodec/mpeg4video.h ffmpeg-mt/libavcodec/mpeg4video.h
  int ff_mpeg4_decode_picture_header(MpegEncContext * s, GetBitContext *gb);
 diff -rpu -N orig/libavcodec/mpeg4video_es_bsf.c ffmpeg-mt/libavcodec/mpeg4video_es_bsf.c
 --- orig/libavcodec/mpeg4video_es_bsf.c	1969-12-31 16:00:00.000000000 -0800
-+++ ffmpeg-mt/libavcodec/mpeg4video_es_bsf.c	2010-07-27 13:06:34.289204300 -0700
++++ ffmpeg-mt/libavcodec/mpeg4video_es_bsf.c	2010-08-11 14:22:29.571313500 -0700
 @@ -0,0 +1,91 @@
 +/*
 + * Copyright (c) 2009 Google Inc.
@@ -136,8 +136,8 @@ diff -rpu -N orig/libavcodec/mpeg4video_es_bsf.c ffmpeg-mt/libavcodec/mpeg4video
 +    mpeg4video_es_filter,
 +};
 diff -rpu -N orig/libavcodec/mpeg4videoenc.c ffmpeg-mt/libavcodec/mpeg4videoenc.c
---- orig/libavcodec/mpeg4videoenc.c	2010-07-27 13:06:29.880763500 -0700
-+++ ffmpeg-mt/libavcodec/mpeg4videoenc.c	2010-07-27 13:06:34.294204800 -0700
+--- orig/libavcodec/mpeg4videoenc.c	2010-08-11 14:22:27.828139200 -0700
++++ ffmpeg-mt/libavcodec/mpeg4videoenc.c	2010-08-11 14:22:29.577314100 -0700
 @@ -872,7 +872,7 @@ void ff_set_mpeg4_time(MpegEncContext *
      }
  }
