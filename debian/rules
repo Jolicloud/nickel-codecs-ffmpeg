@@ -29,14 +29,15 @@ GYP_DEFINES = disable_sse2=1
 
 ifeq (armel,$(DEB_BUILD_ARCH))
 GYP_DEFINES += \
-        target_arch=arm \
-        $(NULL)
-ifneq (,$(filter unstable development,$(DEBIAN_DIST)))
+	target_arch=arm \
+	arm_thumb=1 \
+	arm_neon=0 \
+	$(NULL)
+ifneq (,$(filter 10.10 unstable development,$(DEBIAN_DIST)))
 # on $(DEB_BUILD_ARCH) and $(DEBIAN_DIST), enforce an armv7 with thumb build
 GYP_DEFINES += \
-        armv7=1 \
-        arm_thumb=1 \
-        $(NULL)
+	armv7=1 \
+	$(NULL)
 endif
 else
 ifeq (x86_64,$(DEB_BUILD_GNU_CPU))

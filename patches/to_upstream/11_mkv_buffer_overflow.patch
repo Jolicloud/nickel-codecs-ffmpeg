@@ -1,6 +1,6 @@
 diff -rpu -N orig/libavformat/matroskadec.c ffmpeg-mt/libavformat/matroskadec.c
---- orig/libavformat/matroskadec.c	2010-07-27 13:08:26.240398300 -0700
-+++ ffmpeg-mt/libavformat/matroskadec.c	2010-07-27 13:08:27.346508900 -0700
+--- orig/libavformat/matroskadec.c	2010-08-11 14:23:10.350391000 -0700
++++ ffmpeg-mt/libavformat/matroskadec.c	2010-08-11 14:23:12.533609300 -0700
 @@ -34,13 +34,17 @@
  /* For ff_codec_get_id(). */
  #include "riff.h"

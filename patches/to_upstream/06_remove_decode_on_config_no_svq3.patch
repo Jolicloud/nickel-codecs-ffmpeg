@@ -1,6 +1,6 @@
 diff -rpu -N orig/libavcodec/h264.h ffmpeg-mt/libavcodec/h264.h
---- orig/libavcodec/h264.h	2010-07-27 13:07:56.248399400 -0700
-+++ ffmpeg-mt/libavcodec/h264.h	2010-07-27 13:07:58.254600000 -0700
+--- orig/libavcodec/h264.h	2010-08-11 14:22:43.995755800 -0700
++++ ffmpeg-mt/libavcodec/h264.h	2010-08-11 14:22:45.816937900 -0700
 @@ -602,9 +602,20 @@ typedef struct H264Context{
  
  extern const uint8_t ff_h264_chroma_qp[52];

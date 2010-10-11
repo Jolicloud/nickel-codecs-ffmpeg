@@ -1,7 +1,7 @@
 diff -rpu -N orig/libavcodec/Makefile ffmpeg-mt/libavcodec/Makefile
---- orig/libavcodec/Makefile	2010-07-27 13:07:39.604735200 -0700
-+++ ffmpeg-mt/libavcodec/Makefile	2010-07-27 13:07:41.410915800 -0700
-@@ -515,8 +515,7 @@ OBJS-$(CONFIG_MATROSKA_MUXER)          +
+--- orig/libavcodec/Makefile	2010-08-11 14:22:38.950251300 -0700
++++ ffmpeg-mt/libavcodec/Makefile	2010-08-11 14:22:40.769433200 -0700
+@@ -517,8 +517,7 @@ OBJS-$(CONFIG_MATROSKA_MUXER)          +
  OBJS-$(CONFIG_MOV_DEMUXER)             += mpeg4audio.o mpegaudiodata.o
  OBJS-$(CONFIG_MPEGTS_MUXER)            += mpegvideo.o mpeg4audio.o
  OBJS-$(CONFIG_NUT_MUXER)               += mpegaudiodata.o
@@ -12,8 +12,8 @@ diff -rpu -N orig/libavcodec/Makefile ffmpeg-mt/libavcodec/Makefile
  OBJS-$(CONFIG_RTP_MUXER)               += mpegvideo.o
  OBJS-$(CONFIG_WEBM_MUXER)              += xiph.o mpeg4audio.o \
 diff -rpu -N orig/libavformat/Makefile ffmpeg-mt/libavformat/Makefile
---- orig/libavformat/Makefile	2010-07-27 13:07:40.198794600 -0700
-+++ ffmpeg-mt/libavformat/Makefile	2010-07-27 13:07:41.414916200 -0700
+--- orig/libavformat/Makefile	2010-08-11 14:22:39.550311300 -0700
++++ ffmpeg-mt/libavformat/Makefile	2010-08-11 14:22:40.781434400 -0700
 @@ -146,12 +146,12 @@ OBJS-$(CONFIG_NULL_MUXER)
  OBJS-$(CONFIG_NUT_DEMUXER)               += nutdec.o nut.o riff.o
  OBJS-$(CONFIG_NUT_MUXER)                 += nutenc.o nut.o riff.o
@@ -31,8 +31,8 @@ diff -rpu -N orig/libavformat/Makefile ffmpeg-mt/libavformat/Makefile
                                              oggparsevorbis.o \
                                              riff.o \
 diff -rpu -N orig/libavformat/oggdec.c ffmpeg-mt/libavformat/oggdec.c
---- orig/libavformat/oggdec.c	2010-07-27 13:07:40.334808200 -0700
-+++ ffmpeg-mt/libavformat/oggdec.c	2010-07-27 13:07:41.417916500 -0700
+--- orig/libavformat/oggdec.c	2010-08-11 14:22:39.590315300 -0700
++++ ffmpeg-mt/libavformat/oggdec.c	2010-08-11 14:22:40.787435000 -0700
 @@ -40,13 +40,23 @@
  
  static const struct ogg_codec * const ogg_codecs[] = {

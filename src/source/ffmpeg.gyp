@@ -123,6 +123,8 @@
             'patched-ffmpeg-mt/libavcodec/vp3.c',
             'patched-ffmpeg-mt/libavcodec/vp3dsp.c',
             'patched-ffmpeg-mt/libavcodec/xiph.c',
+            'patched-ffmpeg-mt/libavcore/imgutils.c',  # aug 11
+            'patched-ffmpeg-mt/libavcore/parseutils.c',  # aug 11
             'patched-ffmpeg-mt/libavformat/allformats.c',
             'patched-ffmpeg-mt/libavformat/avi.c',
             'patched-ffmpeg-mt/libavformat/avio.c',
@@ -150,6 +152,7 @@
             'patched-ffmpeg-mt/libavutil/crc.c',
             'patched-ffmpeg-mt/libavutil/eval.c',
             'patched-ffmpeg-mt/libavutil/intfloat_readwrite.c',
+            'patched-ffmpeg-mt/libavutil/inverse.c',  # aug 11
             'patched-ffmpeg-mt/libavutil/log.c',
             'patched-ffmpeg-mt/libavutil/lzo.c',
             'patched-ffmpeg-mt/libavutil/mathematics.c',
@@ -175,8 +178,6 @@
           'conditions': [
             ['ffmpeg_branding=="Chrome" or ffmpeg_branding=="ChromeOS"', {
               'sources': [
-                'patched-ffmpeg-mt/libavcodec/aac_ac3_parser.c',
-                'patched-ffmpeg-mt/libavcodec/aac_parser.c',
                 'patched-ffmpeg-mt/libavcodec/aacadtsdec.c',  #new
 		'patched-ffmpeg-mt/libavcodec/aacdec.c',
                 'patched-ffmpeg-mt/libavcodec/aacps.c',  # new
@@ -190,7 +191,6 @@
                 'patched-ffmpeg-mt/libavcodec/h264_direct.c',
                 'patched-ffmpeg-mt/libavcodec/h264_loopfilter.c',
                 'patched-ffmpeg-mt/libavcodec/h264_mp4toannexb_bsf.c',
-# removed                'patched-ffmpeg-mt/libavcodec/h264_parser.c',
                 'patched-ffmpeg-mt/libavcodec/h264_ps.c',
                 'patched-ffmpeg-mt/libavcodec/h264_refs.c',
                 'patched-ffmpeg-mt/libavcodec/h264_sei.c',
@@ -215,8 +215,6 @@
                 'patched-ffmpeg-mt/libavcodec/pcm.c',
                 'patched-ffmpeg-mt/libavformat/raw.c',
                 'patched-ffmpeg-mt/libavformat/wav.c',
-                'patched-ffmpeg-mt/libavformat/matroska.c',
-                'patched-ffmpeg-mt/libavformat/matroskadec.c',
               ],
             }],  # ffmpeg_branding
             ['ffmpeg_branding=="ChromeOS"', {
@@ -292,6 +290,8 @@
               ],
               'sources': [
                 'patched-ffmpeg-mt/libavcodec/x86/mpegvideo_mmx.c',
+# aug 11                'patched-ffmpeg-mt/libavcodec/x86/h264dsp_mmx.c',
+
               ],
             }],
             ['(target_arch=="ia32" or target_arch=="x64") and ffmpeg_branding=="ChromeOS"', {
@@ -516,9 +516,12 @@
           ],
           'sources': [
             # The FFmpeg yasm files.
+            'patched-ffmpeg-mt/libavcodec/x86/deinterlace.asm',  # aug 11
             'patched-ffmpeg-mt/libavcodec/x86/dsputil_yasm.asm',
             'patched-ffmpeg-mt/libavcodec/x86/fft_mmx.asm',
+            'patched-ffmpeg-mt/libavcodec/x86/h264_deblock_sse2.asm',  # aug 11
             'patched-ffmpeg-mt/libavcodec/x86/h264_intrapred.asm',  # new
+            'patched-ffmpeg-mt/libavcodec/x86/h264_weight_sse2.asm',  # aug 11
 	    'patched-ffmpeg-mt/libavcodec/x86/vc1dsp_yasm.asm',  # new
           ],
           'rules': [
@@ -612,9 +615,12 @@
                 # Make sure this stays in sync with the corresponding sources
                 # in assemble_ffmpeg_asm.
                 'asm_objects': [
+                  '<(shared_generated_dir)/deinterlace.o',
                   '<(shared_generated_dir)/dsputil_yasm.o',
                   '<(shared_generated_dir)/fft_mmx.o',
+                  '<(shared_generated_dir)/h264_deblock_sse2.o',
                   '<(shared_generated_dir)/h264_intrapred.o',
+                  '<(shared_generated_dir)/h264_weight_sse2.o',
                   '<(shared_generated_dir)/vc1dsp_yasm.o',
                 ],
                 'library_path': '<(shared_generated_dir)/<(STATIC_LIB_PREFIX)<(asm_library)<(STATIC_LIB_SUFFIX)',
