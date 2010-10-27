@@ -1,3 +1,14 @@
+nickel-codecs-ffmpeg (0.6+svn20100904r58574+58998-1jolicloud2) robby-1.1; urgency=low
+
+  [ Benjamin Ryzman ]
+  * Imported Upstream version 0.6+svn20100904r58574+58998
+
+  [ Fabien Tassin ]
+  * Imported Debian patch 0.6+svn20100904r58574+58998-
+    0ubuntu1~ucd2~lucid
+
+ -- Benjamin Ryzman <benjamin@jolicloud.org>  Mon, 11 Oct 2010 11:49:09 +0200
+
 chromium-codecs-ffmpeg (0.6+svn20100904r58574+58998-0ubuntu1~ucd2~lucid) lucid; urgency=low
 
   * Disable arm_neon to fix a FTBFS in libavcodec on Armel. Also enable
